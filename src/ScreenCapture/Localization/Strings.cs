@@ -139,6 +139,7 @@ internal static class Strings
     public static string TrayCaptureRegion => T("Alan Yakala", "Capture Region", "Bereich aufnehmen");
     public static string TrayOpenFolder => T("Klasörü Aç", "Open Folder", "Ordner öffnen");
     public static string TraySettings => T("Ayarlar…", "Settings…", "Einstellungen…");
+    public static string TrayAbout => T("Hakkında…", "About…", "Über…");
     public static string TrayExit => T("Çıkış", "Exit", "Beenden");
 
     // Messages
@@ -303,4 +304,31 @@ internal static class Strings
     public static string SettingsShowNotification => T("Kayıtta tepsi bildirimi göster", "Show a notification when saved", "Beim Speichern Benachrichtigung anzeigen");
     public static string SettingsSwallowMouse => T("Fare kısayol tıklamasını diğer uygulamalara iletme", "Do not pass the mouse shortcut click to other apps", "Maus-Kürzel nicht an andere Programme weitergeben");
     public static string SettingsCapturesFolder => T("Kayıt klasörü", "Save folder", "Speicherordner");
+    public static string SettingsTheme => T("Görünüm", "Appearance", "Darstellung");
+    public static string ThemeLight => T("Açık", "Light", "Hell");
+    public static string ThemeDark => T("Koyu", "Dark", "Dunkel");
+    public static string ThemeSystem => T("Windows ayarını kullan", "Use Windows setting", "Windows-Einstellung verwenden");
+
+    // ---- About ------------------------------------------------------------------------
+
+    public static string AboutButton => T("Hakkında…", "About…", "Über…");
+    public static string AboutTitle => T("ScreenCapture Hakkında", "About ScreenCapture", "Über ScreenCapture");
+    public static string AboutVersion(string version) => T($"Sürüm {version}", $"Version {version}", $"Version {version}");
+    public static string AboutDescription => T(
+        "Tam ekran, pencere ve serbest alan için kompakt ekran görüntüsü aracı. Klavye veya fare kısayoluyla çalışır, görüntüleri kayıpsız PNG olarak kaydeder.",
+        "A compact screen capture tool for full screen, window and region captures. Works with a keyboard or mouse shortcut and saves lossless PNG images.",
+        "Ein kompaktes Werkzeug für Vollbild-, Fenster- und Bereichsaufnahmen. Arbeitet mit Tastatur- oder Maus-Kürzel und speichert verlustfreie PNG-Bilder.");
+    public static string AboutDeveloper => T("Geliştirici", "Developer", "Entwickler");
+    public static string AboutTagline => T("tasarım & geliştirme", "design & development", "Design & Entwicklung");
+    public static string AboutBio => T(
+        "Yirmi yılı aşkın sektör deneyimine sahip, serbest çalışan full-stack yazılım tasarımcısı ve geliştiricisi. Odak noktası en yeni teknolojiler ve kişiye özel çözümler.",
+        "Freelance full-stack software designer and developer with over two decades of industry experience, focused on cutting-edge technologies and bespoke solutions.",
+        "Freiberuflicher Full-Stack-Softwaredesigner und -entwickler mit über zwei Jahrzehnten Branchenerfahrung, mit Fokus auf modernste Technologien und maßgeschneiderte Lösungen.");
+    public static string AboutExpertise => T(
+        "BT danışmanlığı  •  Yazılım geliştirme (.NET, Java)  •  Duyarlı web ve mobil uygulamalar  •  Veri analitiği  •  WordPress bakımı",
+        "IT consulting  •  Software development (.NET, Java)  •  Responsive web & mobile apps  •  Data analytics  •  WordPress care",
+        "IT-Beratung  •  Softwareentwicklung (.NET, Java)  •  Responsive Web- & Mobile-Apps  •  Datenanalyse  •  WordPress-Betreuung");
+    public static string AboutWebsite => T("Web sitesi", "Website", "Webseite");
+    public static string AboutSourceCode => T("Kaynak kod", "Source code", "Quellcode");
+    public static string Close => T("Kapat", "Close", "Schließen");
 }

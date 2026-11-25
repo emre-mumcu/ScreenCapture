@@ -32,7 +32,7 @@ dotnet publish src/ScreenCapture -c Release -r win-x64 --self-contained false -p
 | **Shortcut** | Shows the active shortcut. Change it with **Change…** |
 | **Capture** | Captures immediately with the selected mode and area |
 | **Folder** | Opens the `Captures` folder |
-| **⚙** | More settings and the UI language |
+| **⚙** | More settings, language, appearance (light / dark) and **About…** |
 | Status line | Shows the last saved file. Click it to show the file selected in Explorer |
 
 #### Capture area
@@ -56,6 +56,12 @@ When minimized, the application goes to the taskbar. With "hide in the notificat
 The UI is available in English, German and Turkish. On first start the Windows display language is used: Turkish or German if Windows uses it, English otherwise. Change the language under **⚙ > Language**. The main window, tray menu, selection screens and messages switch immediately, without a restart. Shortcut names follow the language too (for example `Strg+Umschalt+S` in German).
 
 To add a text, add a property with all three translations to `src/ScreenCapture/Localization/Strings.cs`.
+
+### Appearance and About
+
+Under **⚙ > Appearance** choose **Light** (default), **Dark** or **Use Windows setting**. The dark theme is applied immediately to the main window, dialogs, menus and title bar. With **Use Windows setting** the application follows changes to the Windows app theme right away.
+
+**⚙ > About…** (or **About…** in the tray menu) shows the version, the developer and links to the website and the source code. The application icon and the photo in the About dialog come from `src/ScreenCapture/Assets` and are embedded in the application.
 
 ### Setting a shortcut
 
@@ -91,7 +97,6 @@ Images are saved as 24-bit RGB. The alpha channel of a screenshot carries no inf
 - **Windows 11 and PrintScreen:** if "Use the Print screen key to open screen capture" is enabled, the two can conflict. Turning it off under Settings > Accessibility > Keyboard is recommended.
 - **Covered windows:** windows hidden behind other windows are captured with `PrintWindow`. Some hardware-accelerated applications appear black this way; in that case the visible part on screen is captured.
 - **Secure desktop:** the lock screen and UAC prompts cannot be captured.
-- **Application icon:** the icon is drawn at runtime; the `.exe` file itself uses the default icon.
 
 ---
 
@@ -123,7 +128,7 @@ dotnet publish src/ScreenCapture -c Release -r win-x64 --self-contained false -p
 | **Tastenkürzel** | Zeigt das aktive Kürzel. Ändern mit **Ändern…** |
 | **Aufnehmen** | Nimmt sofort mit dem gewählten Modus und Bereich auf |
 | **Ordner** | Öffnet den Ordner `Captures` |
-| **⚙** | Weitere Einstellungen und die Sprache |
+| **⚙** | Weitere Einstellungen, Sprache, Darstellung (hell / dunkel) und **Über…** |
 | Statuszeile | Zeigt die zuletzt gespeicherte Datei. Ein Klick zeigt sie markiert im Explorer |
 
 #### Aufnahmebereich
@@ -147,6 +152,12 @@ Beim Minimieren wandert das Programm in die Taskleiste. Mit „in den Infobereic
 Die Oberfläche gibt es auf Deutsch, Englisch und Türkisch. Beim ersten Start wird die Windows-Anzeigesprache verwendet: Deutsch oder Türkisch, wenn Windows sie nutzt, sonst Englisch. Die Sprache wird unter **⚙ > Sprache / Language** geändert. Hauptfenster, Infobereich-Menü, Auswahlbildschirme und Meldungen wechseln sofort, ohne Neustart. Auch die Namen der Tastenkürzel passen sich an (z. B. `Strg+Umschalt+S`).
 
 Neue Texte werden in `src/ScreenCapture/Localization/Strings.cs` als Eigenschaft mit allen drei Übersetzungen ergänzt.
+
+### Darstellung und Info
+
+Unter **⚙ > Darstellung** stehen **Hell** (Standard), **Dunkel** und **Windows-Einstellung verwenden** zur Auswahl. Das dunkle Design wird sofort auf Hauptfenster, Dialoge, Menüs und Titelleiste angewendet. Mit **Windows-Einstellung verwenden** folgt das Programm Änderungen am Windows-App-Design sofort.
+
+**⚙ > Über…** (oder **Über…** im Infobereich-Menü) zeigt Version, Entwickler sowie Links zur Webseite und zum Quellcode. Programmsymbol und Foto im Info-Dialog stammen aus `src/ScreenCapture/Assets` und sind in das Programm eingebettet.
 
 ### Tastenkürzel festlegen
 
@@ -182,7 +193,6 @@ Bilder werden als 24-Bit-RGB gespeichert. Der Alphakanal eines Screenshots enth�
 - **Windows 11 und die Druck-Taste:** Ist „Bildschirmausschnitt mit der Taste ‚Druck‘ öffnen“ aktiv, kann es zu Konflikten kommen. Es wird empfohlen, die Option unter Einstellungen > Barrierefreiheit > Tastatur zu deaktivieren.
 - **Verdeckte Fenster:** Fenster hinter anderen Fenstern werden mit `PrintWindow` aufgenommen. Manche hardwarebeschleunigte Programme erscheinen dabei schwarz; dann wird der sichtbare Teil auf dem Bildschirm aufgenommen.
 - **Sicherer Desktop:** Sperrbildschirm und UAC-Abfragen können nicht aufgenommen werden.
-- **Programmsymbol:** Das Symbol wird zur Laufzeit gezeichnet; die `.exe`-Datei selbst hat das Standardsymbol.
 
 ---
 
@@ -214,7 +224,7 @@ dotnet publish src/ScreenCapture -c Release -r win-x64 --self-contained false -p
 | **Kısayol** | Etkin kısayolu gösterir. **Değiştir…** ile değiştirilir |
 | **Yakala** | Seçili mod ve alanla hemen yakalar |
 | **Klasör** | `Captures` klasörünü açar |
-| **⚙** | Ek ayarlar ve arayüz dili |
+| **⚙** | Ek ayarlar, dil, görünüm (açık / koyu) ve **Hakkında…** |
 | Durum satırı | Son kaydedilen dosyayı gösterir. Tıklayınca dosyayı Explorer'da seçili olarak açar |
 
 #### Yakalama alanı
@@ -238,6 +248,12 @@ Uygulama küçültüldüğünde görev çubuğuna iner. Ayarlarda "sistem tepsis
 Arayüz Türkçe, İngilizce ve Almanca kullanılabilir. İlk açılışta Windows görüntüleme dili Türkçe ise Türkçe, Almanca ise Almanca, diğer durumlarda İngilizce seçilir. Dil **⚙ > Dil / Language** bölümünden değiştirilir; uygulamayı yeniden başlatmaya gerek kalmadan ana pencere, tepsi menüsü, seçim ekranları ve mesajlar hemen yeni dile geçer. Kısayol adları da dile uyar (örneğin Almancada `Strg+Umschalt+S`).
 
 Yeni bir metin eklemek için `src/ScreenCapture/Localization/Strings.cs` dosyasına üç dildeki karşılığıyla bir özellik eklenir.
+
+### Görünüm ve Hakkında
+
+**⚙ > Görünüm** bölümünden **Açık** (varsayılan), **Koyu** veya **Windows ayarını kullan** seçilebilir. Koyu tema; ana pencereye, diyaloglara, menülere ve başlık çubuğuna anında uygulanır. **Windows ayarını kullan** seçiliyken uygulama, Windows uygulama temasındaki değişikliği de hemen izler.
+
+**⚙ > Hakkında…** (veya tepsi menüsündeki **Hakkında…**) sürüm bilgisini, geliştiriciyi ve web sitesi ile kaynak kod bağlantılarını gösterir. Uygulama ikonu ve Hakkında penceresindeki fotoğraf `src/ScreenCapture/Assets` klasöründen gelir ve uygulamaya gömülüdür.
 
 ### Kısayol atama
 
@@ -273,4 +289,3 @@ Görüntüler 24 bit RGB olarak kaydedilir. Ekran görüntüsünde alfa kanalı 
 - **Windows 11 ve PrintScreen:** "Ekran alıntısını açmak için Print Screen tuşunu kullan" ayarı açıksa çakışma olabilir. Ayarlar > Erişilebilirlik > Klavye yolundan kapatılması önerilir.
 - **Arkada kalan pencereler:** Başka pencerelerin altında kalan pencereler `PrintWindow` ile yakalanır. Bazı donanım hızlandırmalı uygulamalar bu yöntemle siyah görünebilir. Bu durumda ekranda görünen kısım yakalanır.
 - **Güvenli masaüstü:** Kilit ekranı ve UAC istemi gibi güvenli masaüstü ekranları yakalanamaz.
-- **Uygulama ikonu:** İkon çalışma anında programla çizilir; `.exe` dosyasının kendi ikonu varsayılan ikondur.

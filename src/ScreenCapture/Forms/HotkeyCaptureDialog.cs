@@ -8,11 +8,8 @@ namespace ScreenCapture.Forms;
 /// Records a new keyboard or mouse shortcut. Keys are read through an application message filter so
 /// that every key (Tab, Enter, Alt combinations, PrintScreen) reaches the dialog instead of the controls.
 /// </summary>
-internal sealed class HotkeyCaptureDialog : Form, IMessageFilter
+internal sealed class HotkeyCaptureDialog : ThemedDialog, IMessageFilter
 {
-    private static readonly Color ErrorColor = Color.FromArgb(196, 43, 28);
-    private static readonly Color WarningColor = Color.FromArgb(157, 93, 0);
-
     private readonly Label _shortcutLabel;
     private readonly Label _messageLabel;
     private readonly Panel _mouseArea;
@@ -21,18 +18,7 @@ internal sealed class HotkeyCaptureDialog : Form, IMessageFilter
 
     public HotkeyCaptureDialog(HotkeyDefinition current)
     {
-        Text = Strings.HotkeyDialogTitle;
-        Font = UiFonts.Normal;
-        AutoScaleMode = AutoScaleMode.Dpi;
-        AutoScaleDimensions = new SizeF(96f, 96f);
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
-        MinimizeBox = false;
-        ShowInTaskbar = false;
-        StartPosition = FormStartPosition.CenterParent;
-        AutoSize = true;
-        AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        Padding = new Padding(10);
+        BeginBuild(Strings.HotkeyDialogTitle);
 
         var layout = new TableLayoutPanel
         {
@@ -58,14 +44,14 @@ internal sealed class HotkeyCaptureDialog : Form, IMessageFilter
             BorderStyle = BorderStyle.FixedSingle,
             Font = UiFonts.Large,
             Text = current.DisplayText,
-            BackColor = SystemColors.Window,
+            Tag = ThemeRole.Input,
         };
 
         _mouseArea = new Panel
         {
             Size = new Size(340, 64),
             BorderStyle = BorderStyle.FixedSingle,
-            BackColor = Color.FromArgb(236, 242, 250),
+            Tag = ThemeRole.Card,
             Cursor = Cursors.Hand,
             Margin = new Padding(0, 8, 0, 0),
         };
@@ -74,7 +60,7 @@ internal sealed class HotkeyCaptureDialog : Form, IMessageFilter
             Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.MiddleCenter,
             Text = Strings.HotkeyDialogMouseArea,
-            ForeColor = SystemColors.GrayText,
+            Tag = ThemeRole.SecondaryText,
         };
         mouseHint.MouseDown += OnMouseAreaMouseDown;
         _mouseArea.MouseDown += OnMouseAreaMouseDown;
@@ -110,6 +96,7 @@ internal sealed class HotkeyCaptureDialog : Form, IMessageFilter
         Controls.Add(layout);
 
         CancelButton = cancelButton;
+        EndBuild();
     }
 
     /// <summary>The recorded shortcut when the dialog returns OK.</summary>
@@ -216,7 +203,7 @@ internal sealed class HotkeyCaptureDialog : Form, IMessageFilter
         Candidate = null;
         _saveButton.Enabled = false;
         _shortcutLabel.Text = HotkeyDefinition.GetModifiersText(modifiers) + "…";
-        _messageLabel.ForeColor = SystemColors.ControlText;
+        _messageLabel.ForeColor = UiTheme.Text;
         _messageLabel.Text = string.Empty;
     }
 
@@ -229,7 +216,7 @@ internal sealed class HotkeyCaptureDialog : Form, IMessageFilter
         {
             Candidate = null;
             _saveButton.Enabled = false;
-            _messageLabel.ForeColor = ErrorColor;
+            _messageLabel.ForeColor = UiTheme.Error;
             _messageLabel.Text = validation.Error;
             return;
         }
@@ -238,12 +225,12 @@ internal sealed class HotkeyCaptureDialog : Form, IMessageFilter
         _saveButton.Enabled = true;
         if (validation.Warning is not null)
         {
-            _messageLabel.ForeColor = WarningColor;
+            _messageLabel.ForeColor = UiTheme.Warning;
             _messageLabel.Text = validation.Warning;
         }
         else
         {
-            _messageLabel.ForeColor = SystemColors.ControlText;
+            _messageLabel.ForeColor = UiTheme.Text;
             _messageLabel.Text = Strings.HotkeyDialogConfirm;
         }
     }

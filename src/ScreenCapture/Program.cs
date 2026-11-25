@@ -44,6 +44,7 @@ internal static class Program
         AppSettings settings = SettingsStore.Load();
         settings.Language ??= Strings.DetectSystemLanguage();
         Strings.Current = settings.Language.Value;
+        Forms.UiTheme.Mode = Enum.IsDefined(settings.Theme) ? settings.Theme : Forms.ThemeMode.Light;
         bool startMinimized = args.Any(a => string.Equals(a, StartupRegistration.MinimizedArgument, StringComparison.OrdinalIgnoreCase));
 
         Application.Run(new MainForm(settings, startMinimized));

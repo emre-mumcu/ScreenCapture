@@ -249,6 +249,22 @@ internal static unsafe partial class NativeMethods
     [LibraryImport("dwmapi.dll")]
     public static partial int DwmGetWindowAttribute(nint hwnd, int dwAttribute, void* pvAttribute, int cbAttribute);
 
+    [LibraryImport("dwmapi.dll")]
+    public static partial int DwmSetWindowAttribute(nint hwnd, int dwAttribute, void* pvAttribute, int cbAttribute);
+
+    public const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+    /// <summary>Switches the window caption between the light and dark system style.</summary>
+    public static void SetDarkTitleBar(nint hwnd, bool dark)
+    {
+        int value = dark ? 1 : 0;
+        DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &value, sizeof(int));
+
+        // Make the change visible immediately instead of on the next activation.
+        const uint SWP_NOSIZE = 0x0001, SWP_NOMOVE = 0x0002, SWP_NOZORDER = 0x0004, SWP_FRAMECHANGED = 0x0020;
+        SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+    }
+
     // ---- Cursor / GDI ------------------------------------------------------
 
     [LibraryImport("user32.dll", SetLastError = true)]

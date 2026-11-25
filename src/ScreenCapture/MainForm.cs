@@ -28,6 +28,7 @@ internal sealed class MainForm : Form
     private readonly CaptureSaver _saver = new();
     private readonly HotkeyManager _hotkeys;
     private readonly Icon _appIcon = AppIcon.Create();
+    private readonly Icon _trayIcon = AppIcon.CreateSmall();
     private readonly uint _showInstanceMessage = NativeMethods.RegisterWindowMessage(Program.ShowInstanceMessageName);
     private readonly Dictionary<CaptureMode, RadioButton> _modeButtons = [];
     private readonly ToolTip _toolTip;
@@ -56,6 +57,7 @@ internal sealed class MainForm : Form
     private bool _isBusy;
     private bool _hotkeyDialogOpen;
     private string? _lastSavedPath;
+    private StatusKind _statusKind;
 
     public MainForm(AppSettings settings, bool startMinimized)
     {
@@ -64,7 +66,7 @@ internal sealed class MainForm : Form
 
         _toolTip = new ToolTip(_components);
         _monitorMenu = new ContextMenuStrip(_components);
-        _tray = new NotifyIcon(_components) { Icon = _appIcon, Text = "ScreenCapture", Visible = true };
+        _tray = new NotifyIcon(_components) { Icon = _trayIcon, Text = "ScreenCapture", Visible = true };
         _tray.MouseDoubleClick += (_, e) =>
         {
             if (e.Button == MouseButtons.Left)
@@ -77,6 +79,7 @@ internal sealed class MainForm : Form
         SuspendLayout();
         InitializeWindow();
         BuildContent();
+        UiTheme.Apply(this);
         ResumeLayout(performLayout: true);
         BuildTrayMenu();
 
@@ -86,6 +89,7 @@ internal sealed class MainForm : Form
         ApplyWindowPosition();
         TopMost = _settings.AlwaysOnTop;
         Strings.LanguageChanged += OnLanguageChanged;
+        UiTheme.ThemeChanged += OnThemeChanged;
 
         if (startMinimized)
         {
@@ -262,6 +266,7 @@ internal sealed class MainForm : Form
             AutoEllipsis = true,
             Font = UiFonts.Small,
             ForeColor = UiTheme.SecondaryText,
+            Tag = ThemeRole.SecondaryText,
             Margin = Padding.Empty,
         };
 
@@ -319,6 +324,7 @@ internal sealed class MainForm : Form
             AutoEllipsis = true,
             Font = UiFonts.Small,
             ForeColor = UiTheme.SecondaryText,
+            Tag = ThemeRole.SecondaryText,
             Margin = Padding.Empty,
         };
 
@@ -385,8 +391,10 @@ internal sealed class MainForm : Form
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(Strings.TrayOpenFolder, null, (_, _) => OpenCapturesFolder());
         menu.Items.Add(Strings.TraySettings, null, (_, _) => ShowSettingsDialog());
+        menu.Items.Add(Strings.TrayAbout, null, (_, _) => ShowAboutDialog());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(Strings.TrayExit, null, (_, _) => Close());
+        UiTheme.ApplyMenu(menu);
 
         ContextMenuStrip? previous = _tray.ContextMenuStrip;
         _tray.ContextMenuStrip = menu;
@@ -405,6 +413,21 @@ internal sealed class MainForm : Form
         SetStatus(Strings.Ready);
         ResumeLayout(performLayout: true);
         BuildTrayMenu();
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e)
+    {
+        UiTheme.Apply(this);
+        UpdateTargetDisplay();
+        SetStatus(_statusLabel.Text, _statusKind);
+        BuildTrayMenu();
+    }
+
+    private void ShowAboutDialog()
+    {
+        RestoreWindow();
+        using var dialog = new AboutDialog();
+        dialog.ShowDialog(this);
     }
 
     private void ApplyWindowPosition()
@@ -475,6 +498,7 @@ internal sealed class MainForm : Form
 
         // Keep this window out of every screenshot (Windows 10 2004+).
         _excludedFromCapture = NativeMethods.SetWindowDisplayAffinity(Handle, NativeMethods.WDA_EXCLUDEFROMCAPTURE);
+        UiTheme.ApplyTitleBar(this);
 #if DEBUG
         // Diagnostics only: allow taking screenshots of the UI itself.
         if (Environment.GetEnvironmentVariable("SCREENCAPTURE_UI_VISIBLE") == "1")
@@ -493,6 +517,36 @@ internal sealed class MainForm : Form
                 Strings.Current = testLanguage;
             };
             timer.Start();
+        }
+
+        // Diagnostics only: switch the theme shortly after start to test live recoloring.
+        if (Enum.TryParse(Environment.GetEnvironmentVariable("SCREENCAPTURE_TEST_SWITCH_THEME"), out ThemeMode testTheme))
+        {
+            var themeTimer = new System.Windows.Forms.Timer(_components) { Interval = 1500 };
+            themeTimer.Tick += (_, _) =>
+            {
+                themeTimer.Stop();
+                UiTheme.Mode = testTheme;
+            };
+            themeTimer.Start();
+        }
+
+        // Diagnostics only: open a dialog after start so it can be inspected.
+        string? testDialog = Environment.GetEnvironmentVariable("SCREENCAPTURE_TEST_DIALOG");
+        if (!string.IsNullOrEmpty(testDialog))
+        {
+            var dialogTimer = new System.Windows.Forms.Timer(_components) { Interval = 1000 };
+            dialogTimer.Tick += (_, _) =>
+            {
+                dialogTimer.Stop();
+                switch (testDialog)
+                {
+                    case "About": ShowAboutDialog(); break;
+                    case "Settings": ShowSettingsDialog(); break;
+                    case "Hotkey": ShowHotkeyDialog(); break;
+                }
+            };
+            dialogTimer.Start();
         }
 #endif
 
@@ -562,6 +616,8 @@ internal sealed class MainForm : Form
         if (disposing)
         {
             Strings.LanguageChanged -= OnLanguageChanged;
+            UiTheme.ThemeChanged -= OnThemeChanged;
+            _trayIcon.Dispose();
             _hotkeys.Dispose();
             _components.Dispose();
             _appIcon.Dispose();
@@ -602,7 +658,7 @@ internal sealed class MainForm : Form
 
         bool hasTarget = HasTarget(mode);
         _targetLabel.Text = description;
-        _targetLabel.ForeColor = hasTarget ? UiTheme.Accent : SystemColors.ControlText;
+        _targetLabel.ForeColor = hasTarget ? UiTheme.AccentText : UiTheme.Text;
         _toolTip.SetToolTip(_targetLabel, description);
         _targetHintLabel.Text = hasTarget
             ? Strings.TargetSaved
@@ -687,6 +743,7 @@ internal sealed class MainForm : Form
             AddMonitorItem(CaptureTargetText.Describe(all), all, current is { AllMonitors: true });
         }
 
+        UiTheme.ApplyMenu(_monitorMenu);
         _monitorMenu.Show(_defineTargetButton, new Point(0, _defineTargetButton.Height));
     }
 
@@ -926,6 +983,7 @@ internal sealed class MainForm : Form
 
         // Switching the language rebuilds the whole UI through Strings.LanguageChanged.
         Strings.Current = _settings.Language ?? Strings.Current;
+        UiTheme.Mode = _settings.Theme;
         UpdateTargetDisplay();
         SetStatus(Strings.StatusSettingsSaved, isSuccess: true);
     }
@@ -979,11 +1037,27 @@ internal sealed class MainForm : Form
         _tray.Text = trayText.Length <= 63 ? trayText : trayText[..63];
     }
 
-    private void SetStatus(string text, bool isError = false, bool isSuccess = false)
+    private void SetStatus(string text, bool isError = false, bool isSuccess = false) =>
+        SetStatus(text, isError ? StatusKind.Error : isSuccess ? StatusKind.Success : StatusKind.Normal);
+
+    private void SetStatus(string text, StatusKind kind)
     {
+        _statusKind = kind;
         _statusLabel.Text = text;
-        _statusLabel.ForeColor = isError ? UiTheme.Error : isSuccess ? UiTheme.Success : UiTheme.SecondaryText;
+        _statusLabel.ForeColor = kind switch
+        {
+            StatusKind.Error => UiTheme.Error,
+            StatusKind.Success => UiTheme.Success,
+            _ => UiTheme.SecondaryText,
+        };
         _toolTip.SetToolTip(_statusLabel, text);
+    }
+
+    private enum StatusKind
+    {
+        Normal,
+        Success,
+        Error,
     }
 
     /// <summary>Message box when the window is visible, otherwise a tray balloon (no surprise pop-ups).</summary>

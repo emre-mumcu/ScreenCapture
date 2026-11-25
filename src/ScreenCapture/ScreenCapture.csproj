@@ -12,9 +12,17 @@
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <ApplicationVisualStyles>true</ApplicationVisualStyles>
     <ApplicationUseCompatibleTextRendering>false</ApplicationUseCompatibleTextRendering>
-    <Version>1.0.0</Version>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Version>1.1.0</Version>
     <Product>ScreenCapture</Product>
     <Description>Compact screen capture tool</Description>
+    <Authors>Emre Mumcu</Authors>
+    <Copyright>© 2026 Emre Mumcu</Copyright>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\app.ico" LogicalName="ScreenCapture.app.ico" />
+    <EmbeddedResource Include="Assets\EmreIO.jpeg" LogicalName="ScreenCapture.EmreIO.jpeg" />
+  </ItemGroup>
 
 </Project>

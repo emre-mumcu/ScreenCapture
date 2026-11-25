@@ -10,6 +10,9 @@ internal sealed class AppSettings
     /// <summary>UI language; null on first start, then resolved from the Windows display language.</summary>
     public AppLanguage? Language { get; set; }
 
+    /// <summary>Light (default, the original look), Dark, or follow the Windows app theme.</summary>
+    public Forms.ThemeMode Theme { get; set; } = Forms.ThemeMode.Light;
+
     public CaptureMode Mode { get; set; } = CaptureMode.Region;
 
     public HotkeyDefinition Hotkey { get; set; } = HotkeyDefinition.Default;
