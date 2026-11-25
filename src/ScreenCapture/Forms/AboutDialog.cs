@@ -12,7 +12,7 @@ internal sealed class AboutDialog : ThemedDialog
     private const int ContentWidth = 440;
 
     /// <summary>Square part of EmreIO.jpeg centered on the face (same crop as the app icon).</summary>
-    private static readonly Rectangle PhotoCrop = new(150, 70, 820, 820);
+    private static readonly Rectangle PhotoCrop = new(75, 80, 880, 880);
 
     private readonly Bitmap _headerImage = CreateHeaderImage();
 

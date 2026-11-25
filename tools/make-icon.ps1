@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory)] [string] $Source,
     [Parameter(Mandatory)] [string] $IcoOut,
     [Parameter(Mandatory)] [string] $PreviewOut,
-    [int] $CropX = 150, [int] $CropY = 70, [int] $CropSize = 820
+    [int] $CropX = 75, [int] $CropY = 80, [int] $CropSize = 880
 )
 
 Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @'
