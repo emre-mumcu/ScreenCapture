@@ -1,5 +1,5 @@
 # Regenerates src/ScreenCapture/Assets/app.ico from the developer photo.
-# Usage: .	oolsmake-icon.ps1 -Source srcScreenCaptureAssetsEmreIO.jpeg -IcoOut srcScreenCaptureAssetspp.ico -PreviewOut preview.png
+# Usage: .\tools\make-icon.ps1 -Source src\ScreenCapture\Assets\EmreIO.jpeg -IcoOut src\ScreenCapture\Assets\app.ico -PreviewOut preview.png
 
 param(
     [Parameter(Mandatory)] [string] $Source,
