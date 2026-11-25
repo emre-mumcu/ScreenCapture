@@ -1,0 +1,23 @@
+# Build output
+bin/
+obj/
+publish/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# Runtime data written next to the executable
+Captures/
+settings.json
+settings.json.tmp
+error.log
+
+# Prompt files (kept locally, not published)
+_Prompt.md
+_PromptPrompt.md
