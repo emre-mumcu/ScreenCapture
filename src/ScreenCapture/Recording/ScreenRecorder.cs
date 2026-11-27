@@ -12,8 +12,7 @@ internal sealed record RecordingOptions(
     RecordingArea Area,
     int FrameRate,
     bool IncludeCursor,
-    bool SystemAudio,
-    bool Microphone,
+    IReadOnlyList<AudioSourceSetting> AudioSources, // empty = silent video
     string OutputPath);
 
 /// <summary>
@@ -58,7 +57,7 @@ internal sealed class ScreenRecorder : IDisposable
         _sourceSize = new Size(options.Area.Bounds.Width, options.Area.Bounds.Height);
         _frameSize = ComputeFrameSize(_sourceSize);
 
-        bool wantsAudio = options.SystemAudio || options.Microphone;
+        bool wantsAudio = options.AudioSources.Count > 0;
         RecorderTrace.Write($"Creating writer {_frameSize.Width}x{_frameSize.Height} @ {options.FrameRate} fps, audio={wantsAudio}");
         _writer = new Mp4Writer(options.OutputPath, _frameSize.Width, _frameSize.Height, options.FrameRate, wantsAudio);
         RecorderTrace.Write("Writer created");
@@ -132,37 +131,89 @@ internal sealed class ScreenRecorder : IDisposable
             return; // diagnostics: a synthetic tone replaces the devices
         }
 #endif
-        TryAddSource(_options.SystemAudio, loopback: true, Strings.VideoSystemAudio, warnings);
-        TryAddSource(_options.Microphone, loopback: false, Strings.VideoMicrophone, warnings);
+        // All sources open in parallel under one deadline: a hung Windows Audio service can block
+        // IAudioClient calls for ~40 s, and that must not hold up the recording.
+        var opening = _options.AudioSources
+            .Select(setting => (Setting: setting, Task: Task.Run(() => OpenSetting(setting))))
+            .ToList();
+        var deadline = Stopwatch.StartNew();
+        foreach ((AudioSourceSetting setting, Task<List<AudioCaptureSource>?> open) in opening)
+        {
+            AddSources(setting, open, AudioOpenTimeout - deadline.Elapsed, warnings);
+        }
     }
 
-    private void TryAddSource(bool enabled, bool loopback, string name, List<string> warnings)
+    /// <summary>Opens the capture(s) of one setting; null if its device or application is not there.</summary>
+    private List<AudioCaptureSource>? OpenSetting(AudioSourceSetting setting)
     {
-        if (!enabled)
+        if (setting.Kind != AudioSourceKind.Application)
         {
-            return;
+            AudioCaptureSource? source = AudioCaptureSource.TryOpen(setting, _startHns);
+            return source is null ? null : [source];
         }
 
+        if (!CoreAudio.IsProcessLoopbackSupported || setting.DeviceId is null)
+        {
+            return null;
+        }
+
+        List<uint> processes = AudioDevices.FindApplicationProcesses(setting.DeviceId);
+        if (processes.Count == 0)
+        {
+            return null;
+        }
+
+        var sources = new List<AudioCaptureSource>();
         try
         {
-            // A hung Windows Audio service can block IAudioClient calls for ~40 s; do not hold up the recording.
-            Task<AudioCaptureSource?> open = Task.Run(() => AudioCaptureSource.TryOpen(loopback, name, _startHns));
-            if (!open.Wait(AudioOpenTimeout))
+            foreach (uint pid in processes)
+            {
+                sources.Add(AudioCaptureSource.OpenProcess(pid, setting.DisplayName, _startHns, AudioOpenTimeout));
+            }
+        }
+        catch
+        {
+            sources.ForEach(s => s.Dispose());
+            throw;
+        }
+
+        return sources;
+    }
+
+    private void AddSources(AudioSourceSetting setting, Task<List<AudioCaptureSource>?> open, TimeSpan wait, List<string> warnings)
+    {
+        string name = setting.DisplayName;
+        try
+        {
+            if (!open.Wait(wait > TimeSpan.Zero ? wait : TimeSpan.Zero))
             {
                 warnings.Add(Strings.VideoAudioDeviceTimeout(name));
                 Storage.ErrorLog.Write(new TimeoutException($"Opening '{name}' took longer than {AudioOpenTimeout}."), "Audio source timeout");
-                _ = open.ContinueWith(t => t.Result?.Dispose(), TaskContinuationOptions.OnlyOnRanToCompletion);
+                _ = open.ContinueWith(t => t.Result?.ForEach(s => s.Dispose()), TaskContinuationOptions.OnlyOnRanToCompletion);
                 return;
             }
 
-            AudioCaptureSource? source = open.GetAwaiter().GetResult();
-            if (source is null)
+            List<AudioCaptureSource>? sources = open.GetAwaiter().GetResult();
+            if (sources is null)
             {
-                warnings.Add(Strings.VideoAudioDeviceMissing(name));
+                warnings.Add(setting.Kind == AudioSourceKind.Application
+                    ? Strings.VideoAudioAppMissing(name)
+                    : Strings.VideoAudioDeviceMissing(name));
                 return;
             }
 
-            _audioSources.Add(source);
+            foreach (AudioCaptureSource source in sources)
+            {
+                // "Default device" plus the same device chosen by name would record the sound twice.
+                if (_audioSources.Any(s => s.Loopback == source.Loopback &&
+                                           string.Equals(s.DeviceId, source.DeviceId, StringComparison.OrdinalIgnoreCase)))
+                {
+                    source.Dispose();
+                    continue;
+                }
+
+                _audioSources.Add(source);
+            }
         }
         catch (Exception ex)
         {

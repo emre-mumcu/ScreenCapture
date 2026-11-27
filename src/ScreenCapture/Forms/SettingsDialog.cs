@@ -22,8 +22,7 @@ internal sealed class SettingsDialog : ThemedDialog
     private readonly CheckBox _swallowMouse;
     private readonly CheckBox _startWithWindows;
     private readonly ComboBox _frameRate;
-    private readonly CheckBox _systemAudio;
-    private readonly CheckBox _microphone;
+    private readonly Label _audioSummary = new();
     private readonly CheckBox _videoCursor;
 
     private static readonly int[] FrameRates = [15, 24, 30, 60];
@@ -62,8 +61,7 @@ internal sealed class SettingsDialog : ThemedDialog
         _showAreaFrame = AddCheck(layout, Strings.SettingsShowAreaFrame, _settings.ShowAreaFrame);
 
         AddHeader(layout, Strings.SettingsVideo);
-        _systemAudio = AddCheck(layout, Strings.SettingsSystemAudio, _settings.RecordSystemAudio);
-        _microphone = AddCheck(layout, Strings.SettingsMicrophone, _settings.RecordMicrophone);
+        layout.Controls.Add(CreateAudioRow());
         _videoCursor = AddCheck(layout, Strings.SettingsVideoCursor, _settings.VideoIncludeCursor);
         var frameRateRow = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Margin = new Padding(0, 2, 0, 0) };
         frameRateRow.Controls.Add(new Label { Text = Strings.SettingsFrameRate, AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 6, 0) });
@@ -94,6 +92,61 @@ internal sealed class SettingsDialog : ThemedDialog
 
     /// <summary>The edited copy of the settings (valid when the dialog returns OK).</summary>
     public AppSettings Result => _settings;
+
+    /// <summary>"Audio: System audio + Microphone   [Audio sources…]"</summary>
+    private TableLayoutPanel CreateAudioRow()
+    {
+        var row = new TableLayoutPanel
+        {
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 2,
+            Margin = new Padding(0, 2, 0, 2),
+        };
+        row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, ContentWidth - 130));
+        row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+        _audioSummary.AutoSize = true;
+        _audioSummary.UseMnemonic = false;
+        _audioSummary.MaximumSize = new Size(ContentWidth - 140, 0);
+        _audioSummary.Anchor = AnchorStyles.Left;
+        _audioSummary.Margin = new Padding(3, 4, 3, 4);
+        UpdateAudioSummary();
+
+        var button = new Button { Text = Strings.SettingsAudioSources, AutoSize = true, MinimumSize = new Size(120, 28), Anchor = AnchorStyles.Right, Margin = Padding.Empty };
+        button.Click += (_, _) => ChooseAudioSources();
+
+        row.Controls.Add(_audioSummary, 0, 0);
+        row.Controls.Add(button, 1, 0);
+        return row;
+    }
+
+    private void UpdateAudioSummary()
+    {
+        IReadOnlyList<Recording.AudioSourceSetting> sources = _settings.AudioSources;
+        _audioSummary.Text = $"{Strings.SettingsAudioLabel} {(sources.Count == 0 ? Strings.VideoSilent : Recording.AudioDevices.Describe(sources))}";
+    }
+
+    private void ChooseAudioSources()
+    {
+        List<Recording.AudioDeviceInfo>? devices;
+        Cursor = Cursors.WaitCursor;
+        try
+        {
+            devices = Recording.AudioDevices.TryGetDevices();
+        }
+        finally
+        {
+            Cursor = Cursors.Default;
+        }
+
+        using var dialog = new AudioSourcesDialog(_settings.AudioSources, devices);
+        if (dialog.ShowDialog(this) == DialogResult.OK)
+        {
+            _settings.VideoAudioSources = dialog.Result;
+            UpdateAudioSummary();
+        }
+    }
 
     private TableLayoutPanel CreateButtonRow()
     {
@@ -138,8 +191,6 @@ internal sealed class SettingsDialog : ThemedDialog
         _settings.IncludeCursor = _includeCursor.Checked;
         _settings.CopyToClipboard = _copyToClipboard.Checked;
         _settings.ShowAreaFrame = _showAreaFrame.Checked;
-        _settings.RecordSystemAudio = _systemAudio.Checked;
-        _settings.RecordMicrophone = _microphone.Checked;
         _settings.VideoIncludeCursor = _videoCursor.Checked;
         _settings.VideoFrameRate = FrameRates[Math.Max(0, _frameRate.SelectedIndex)];
         _settings.PlaySound = _playSound.Checked;

@@ -33,6 +33,8 @@ internal static class SettingsStore
                 settings.Mode = Capture.CaptureMode.Region;
             }
 
+            settings.Normalize();
+
             return settings;
         }
         catch (Exception ex)

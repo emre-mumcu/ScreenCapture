@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using ScreenCapture.Capture;
 using ScreenCapture.Hotkeys;
 using ScreenCapture.Localization;
@@ -21,11 +22,19 @@ internal sealed class AppSettings
     /// <summary>Video frames per second: 15, 24, 30 or 60.</summary>
     public int VideoFrameRate { get; set; } = 30;
 
-    /// <summary>Record what the computer plays (WASAPI loopback of the default playback device).</summary>
-    public bool RecordSystemAudio { get; set; } = true;
+    /// <summary>
+    /// Audio sources mixed into videos: playback devices (what they play) and input devices. Empty = silent video.
+    /// Null only while reading an older settings file; see <see cref="Normalize"/>.
+    /// </summary>
+    public List<Recording.AudioSourceSetting>? VideoAudioSources { get; set; }
 
-    /// <summary>Record the default microphone (mixed with system audio when both are on).</summary>
-    public bool RecordMicrophone { get; set; }
+    /// <summary>Older settings (before device selection): default playback device on/off.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? RecordSystemAudio { get; set; }
+
+    /// <summary>Older settings (before device selection): default microphone on/off.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? RecordMicrophone { get; set; }
 
     public bool VideoIncludeCursor { get; set; } = true;
 
@@ -68,5 +77,42 @@ internal sealed class AppSettings
 
     public int? WindowTop { get; set; }
 
-    public AppSettings Clone() => (AppSettings)MemberwiseClone();
+    public AppSettings Clone()
+    {
+        var clone = (AppSettings)MemberwiseClone();
+        clone.VideoAudioSources = VideoAudioSources is null ? null : [.. VideoAudioSources];
+        return clone;
+    }
+
+    /// <summary>Fills in values missing from older settings files (default: system audio only).</summary>
+    public void Normalize()
+    {
+        if (VideoAudioSources is null)
+        {
+            VideoAudioSources = [];
+            if (RecordSystemAudio ?? true)
+            {
+                VideoAudioSources.Add(new Recording.AudioSourceSetting(Recording.AudioSourceKind.Playback, null, null));
+            }
+
+            if (RecordMicrophone ?? false)
+            {
+                VideoAudioSources.Add(new Recording.AudioSourceSetting(Recording.AudioSourceKind.Input, null, null));
+            }
+        }
+
+        RecordSystemAudio = null;
+        RecordMicrophone = null;
+    }
+
+    /// <summary>The chosen audio sources (never null).</summary>
+    [JsonIgnore]
+    public IReadOnlyList<Recording.AudioSourceSetting> AudioSources
+    {
+        get
+        {
+            Normalize();
+            return VideoAudioSources!;
+        }
+    }
 }

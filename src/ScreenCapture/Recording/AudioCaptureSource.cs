@@ -6,8 +6,8 @@ using static ScreenCapture.Interop.CoreAudio;
 namespace ScreenCapture.Recording;
 
 /// <summary>
-/// Captures one audio endpoint with WASAPI in shared mode: the default playback device in loopback
-/// mode ("what you hear") or the default microphone. Audio is converted to 48 kHz stereo float and
+/// Captures one audio endpoint with WASAPI in shared mode: a playback device in loopback
+/// mode ("what you hear") or an input device such as a microphone. Audio is converted to 48 kHz stereo float and
 /// placed on the recording timeline using the QPC timestamps WASAPI reports, so silence (loopback
 /// delivers no packets while nothing plays) and device clock drift stay in sync with the video.
 /// </summary>
@@ -23,10 +23,13 @@ internal sealed unsafe class AudioCaptureSource : IDisposable
 
     private nint _client;
     private nint _capture;
+    private nint _event;
     private int _channels;
     private int _sampleRate;
     private bool _isFloat;
     private int _bitsPerSample;
+    private float _peak;   // diagnostics only (RecorderTrace)
+    private int _packets;
 
     // Timeline buffer: stereo float frames starting at timeline frame _bufferStart.
     private float[] _buffer = new float[OutputRate * 2];
@@ -53,19 +56,36 @@ internal sealed unsafe class AudioCaptureSource : IDisposable
     /// <summary>Error that stopped the capture thread, if any.</summary>
     public Exception? Error { get; private set; }
 
-    /// <summary>Opens the default device. Returns null if there is no such device.</summary>
-    public static AudioCaptureSource? TryOpen(bool loopback, string name, long startHns)
+    /// <summary>Endpoint id of the opened device (the resolved id for "default device" settings).</summary>
+    public string DeviceId { get; private set; } = string.Empty;
+
+    public bool Loopback { get; private set; }
+
+    /// <summary>
+    /// Opens the device of <paramref name="setting"/>: the current default device, or the saved device id.
+    /// Returns null if there is no such (active) device.
+    /// </summary>
+    public static AudioCaptureSource? TryOpen(AudioSourceSetting setting, long startHns)
     {
+        bool loopback = setting.Kind == AudioSourceKind.Playback;
         nint enumerator = 0, device = 0;
-        var source = new AudioCaptureSource(name, startHns);
+        var source = new AudioCaptureSource(setting.DisplayName, startHns);
         try
         {
             enumerator = CreateDeviceEnumerator();
-            if (GetDefaultEndpoint(enumerator, loopback ? eRender : eCapture, out device) < 0)
+            int hr = setting.DeviceId is null
+                ? GetDefaultEndpoint(enumerator, loopback ? eRender : eCapture, out device)
+                : GetDevice(enumerator, setting.DeviceId, out device);
+            uint state = hr >= 0 ? DeviceGetState(device) : 0;
+            RecorderTrace.Write($"{setting.DisplayName}: open hr=0x{hr:X8} state={state}");
+            if (hr < 0 || state != DEVICE_STATE_ACTIVE)
             {
+                source.Dispose();
                 return null;
             }
 
+            source.DeviceId = DeviceGetId(device);
+            source.Loopback = loopback;
             source.Initialize(device, loopback);
             return source;
         }
@@ -81,9 +101,55 @@ internal sealed unsafe class AudioCaptureSource : IDisposable
         }
     }
 
+    /// <summary>
+    /// Opens a capture of what process <paramref name="processId"/> (and its child processes) plays.
+    /// <paramref name="name"/> is used in messages.
+    /// </summary>
+    public static AudioCaptureSource OpenProcess(uint processId, string name, long startHns, TimeSpan timeout)
+    {
+        var source = new AudioCaptureSource(name, startHns) { DeviceId = "process:" + processId, Loopback = true };
+        try
+        {
+            RecorderTrace.Write($"{name}: activate process loopback for {processId}");
+            source._client = ActivateProcessLoopbackClient(processId, timeout);
+
+            // Process loopback has no mix format: ask for 48 kHz stereo float, Windows converts.
+            source._channels = 2;
+            source._sampleRate = OutputRate;
+            source._bitsPerSample = 32;
+            source._isFloat = true;
+            var format = new WAVEFORMATEX
+            {
+                wFormatTag = WAVE_FORMAT_IEEE_FLOAT,
+                nChannels = 2,
+                nSamplesPerSec = OutputRate,
+                wBitsPerSample = 32,
+                nBlockAlign = 8,
+                nAvgBytesPerSec = OutputRate * 8,
+            };
+            ClientInitialize(source._client,
+                AUDCLNT_STREAMFLAGS_LOOPBACK | AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY,
+                BufferDuration, &format);
+
+            // Event-driven mode is required by process loopback; the loop still polls, the event just has to exist.
+            source._event = CreateEvent(0, false, false, 0);
+            ClientSetEventHandle(source._client, source._event);
+            source._capture = ClientGetCaptureService(source._client);
+            RecorderTrace.Write($"{name}: initialized");
+            return source;
+        }
+        catch
+        {
+            source.Dispose();
+            throw;
+        }
+    }
+
     private void Initialize(nint device, bool loopback)
     {
+        RecorderTrace.Write($"{Name}: activate");
         _client = ActivateAudioClient(device);
+        RecorderTrace.Write($"{Name}: activated");
         WAVEFORMATEX* format = ClientGetMixFormat(_client);
         try
         {
@@ -99,7 +165,9 @@ internal sealed unsafe class AudioCaptureSource : IDisposable
                 throw new NotSupportedException($"Unsupported audio format: {_bitsPerSample}-bit, {_channels} channels.");
             }
 
+            RecorderTrace.Write($"{Name}: initialize {_sampleRate} Hz {_channels} ch {_bitsPerSample} bit");
             ClientInitialize(_client, loopback ? AUDCLNT_STREAMFLAGS_LOOPBACK : 0, BufferDuration, format);
+            RecorderTrace.Write($"{Name}: initialized");
         }
         finally
         {
@@ -127,6 +195,8 @@ internal sealed unsafe class AudioCaptureSource : IDisposable
         {
             ClientStop(_client);
         }
+
+        RecorderTrace.Write($"{Name}: stopped, {_packets} packets, peak {_peak:0.000}");
     }
 
     /// <summary>
@@ -182,7 +252,14 @@ internal sealed unsafe class AudioCaptureSource : IDisposable
             {
                 if (frames > 0)
                 {
-                    Append(data, (int)frames, (flags & AUDCLNT_BUFFERFLAGS_SILENT) != 0, (long)qpcPosition);
+                    long time = (long)qpcPosition;
+                    if (time == 0 || (flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) != 0)
+                    {
+                        // No usable device timestamp: the packet ends about now.
+                        time = NowHns() - frames * 10_000_000L / _sampleRate;
+                    }
+
+                    Append(data, (int)frames, (flags & AUDCLNT_BUFFERFLAGS_SILENT) != 0, time);
                 }
             }
             finally
@@ -197,6 +274,12 @@ internal sealed unsafe class AudioCaptureSource : IDisposable
     private void Append(byte* data, int frames, bool silent, long qpcHns)
     {
         int outputFrames = ConvertAndResample(data, frames, silent);
+        if (RecorderTrace.FilePath is not null)
+        {
+            for (int i = 0; i < outputFrames * 2; i++) _peak = Math.Max(_peak, Math.Abs(_converted[i]));
+            _packets++;
+        }
+
         long position = (qpcHns - _startHns) * OutputRate / 10_000_000;
 
         lock (_lock)
@@ -345,6 +428,11 @@ internal sealed unsafe class AudioCaptureSource : IDisposable
 
         ComCall.Release(ref _capture);
         ComCall.Release(ref _client);
+        if (_event != 0)
+        {
+            CloseHandle(_event);
+            _event = 0;
+        }
     }
 
     /// <summary>Current time in the 100 ns QPC domain used by WASAPI timestamps.</summary>

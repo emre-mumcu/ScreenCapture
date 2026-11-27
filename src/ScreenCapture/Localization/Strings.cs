@@ -335,7 +335,11 @@ internal static class Strings
         $"{name} için cihaz bulunamadı; video bu ses olmadan kaydediliyor.",
         $"No device found for {name}; recording without it.",
         $"Kein Gerät für {name} gefunden; Aufnahme ohne diesen Ton.");
-    public static string VideoAudioDeviceFailed(string name) => T(
+    public static string VideoAudioAppMissing(string name) => T(
+        $"{name} çalışmıyor; video bu uygulamanın sesi olmadan kaydediliyor.",
+        $"{name} is not running; recording without its audio.",
+        $"{name} läuft nicht; Aufnahme ohne seinen Ton.");
+    public static string VideoAudioDeviceFailed(string name) =>T(
         $"{name} açılamadı; video bu ses olmadan kaydediliyor.",
         $"{name} could not be opened; recording without it.",
         $"{name} konnte nicht geöffnet werden; Aufnahme ohne diesen Ton.");
@@ -351,8 +355,52 @@ internal static class Strings
     public static string TrayStopRecording => T("Video Kaydını Durdur", "Stop Video Recording", "Videoaufnahme beenden");
     public static string SettingsVideo => T("Video", "Video", "Video");
     public static string SettingsFrameRate => T("Kare hızı:", "Frame rate:", "Bildrate:");
-    public static string SettingsSystemAudio => T("Sistem sesini kaydet (bilgisayarda çalan ses)", "Record system audio (what the computer plays)", "Systemton aufnehmen (was der Computer abspielt)");
-    public static string SettingsMicrophone => T("Mikrofonu kaydet", "Record the microphone", "Mikrofon aufnehmen");
+    public static string SettingsAudioSources => T("Ses kaynakları…", "Audio sources…", "Tonquellen…");
+    public static string SettingsAudioLabel => T("Ses:", "Audio:", "Ton:");
+    public static string VideoSilent => T("Ses yok (sessiz video)", "No audio (silent video)", "Kein Ton (stummes Video)");
+
+    // ---- Audio sources dialog ---------------------------------------------------------
+
+    public static string AudioTitle => T("Video ses kaynakları", "Video audio sources", "Tonquellen für Videos");
+    public static string AudioIntro => T(
+        "Videoya kaydedilecek sesleri seçin. Birden fazla seçilirse sesler karıştırılır.",
+        "Choose the sounds recorded into videos. Several sources are mixed together.",
+        "Wählen Sie die Töne für Videos. Mehrere Quellen werden zusammengemischt.");
+    public static string AudioSilent => T("Ses kaydetme (sessiz video)", "Do not record audio (silent video)", "Keinen Ton aufnehmen (stummes Video)");
+    public static string AudioPlaybackHeader => T("Oynatılan ses (çıkış aygıtları)", "Played audio (output devices)", "Wiedergegebener Ton (Ausgabegeräte)");
+    public static string AudioPlaybackHint => T(
+        "Bilgisayarın o aygıttan çaldığı her şey: müzik, video, uygulama ve sistem sesleri.",
+        "Everything the computer plays on that device: music, videos, apps and system sounds.",
+        "Alles, was der Computer auf diesem Gerät abspielt: Musik, Videos, Programme und Systemklänge.");
+    public static string AudioInputHeader => T("Giriş aygıtları (mikrofon, hat girişi…)", "Input devices (microphone, line in…)", "Eingabegeräte (Mikrofon, Line-In…)");
+    public static string AudioDefaultPlayback(string? current) => T(
+        $"Varsayılan çıkış aygıtı{NowSuffix(current)}",
+        $"Default output device{NowSuffix(current)}",
+        $"Standard-Ausgabegerät{NowSuffix(current)}");
+    public static string AudioDefaultInput(string? current) => T(
+        $"Varsayılan giriş aygıtı{NowSuffix(current)}",
+        $"Default input device{NowSuffix(current)}",
+        $"Standard-Eingabegerät{NowSuffix(current)}");
+    private static string NowSuffix(string? name) => name is null ? string.Empty : T($" – şu an: {name}", $" – now: {name}", $" – derzeit: {name}");
+    public static string AudioDefaultSuffix => T(" (varsayılan)", " (default)", " (Standard)");
+    public static string AudioNotConnected => T(" (bağlı değil)", " (not connected)", " (nicht verbunden)");
+    public static string AudioAppsHeader => T("Uygulamalar (yalnızca seçilen programın sesi)", "Applications (only the chosen program's sound)", "Anwendungen (nur der Ton des gewählten Programms)");
+    public static string AudioAppsHint => T(
+        "Yalnızca o programın çaldığı ses kaydedilir; bildirimler ve diğer uygulamalar kayda girmez. Program listede yoksa onda bir ses başlatıp bu pencereyi yeniden açın.",
+        "Only what that program plays is recorded; notifications and other apps are left out. If a program is missing, start playing something in it and reopen this window.",
+        "Nur was dieses Programm abspielt, wird aufgenommen; Benachrichtigungen und andere Programme nicht. Fehlt ein Programm, darin etwas abspielen und dieses Fenster erneut öffnen.");
+    public static string AudioAppPlaying => T(" – şu an ses çalıyor", " – playing now", " – spielt gerade");
+    public static string AudioAppNotRunning => T(" (kapalı veya henüz ses çalmadı)", " (closed or not playing yet)", " (geschlossen oder noch kein Ton)");
+    public static string AudioAppsNone => T("Şu an ses çalan uygulama yok.", "No application is playing audio right now.", "Derzeit spielt kein Programm Ton ab.");
+    public static string AudioAppsUnsupported => T(
+        "Uygulama bazında ses kaydı Windows 11 (veya Windows 10 20348+) gerektirir.",
+        "Recording a single application's audio needs Windows 11 (or Windows 10 build 20348+).",
+        "Der Ton einzelner Programme erfordert Windows 11 (oder Windows 10 Build 20348+).");
+    public static string AudioNoDevices =>T("Aygıt bulunamadı.", "No devices found.", "Keine Geräte gefunden.");
+    public static string AudioDevicesTimeout => T(
+        "Windows Ses hizmeti yanıt vermediği için aygıtlar listelenemedi. Yalnızca varsayılan aygıtlar seçilebilir.",
+        "The Windows Audio service did not respond, so devices could not be listed. Only the default devices can be chosen.",
+        "Der Windows-Audiodienst antwortet nicht, daher konnten keine Geräte aufgelistet werden. Nur die Standardgeräte sind wählbar.");
     public static string SettingsVideoCursor => T("Fare imlecini videoda göster", "Show the mouse pointer in videos", "Mauszeiger im Video anzeigen");
 
     // ---- About ------------------------------------------------------------------------

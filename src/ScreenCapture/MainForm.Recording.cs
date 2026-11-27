@@ -74,12 +74,10 @@ internal sealed partial class MainForm
             return Strings.Ready;
         }
 
-        var audio = new List<string>();
-        if (_settings.RecordSystemAudio) audio.Add(Strings.VideoSystemAudio);
-        if (_settings.RecordMicrophone) audio.Add(Strings.VideoMicrophone);
+        IReadOnlyList<AudioSourceSetting> audio = _settings.AudioSources;
         return audio.Count == 0
             ? $"{Strings.VideoNoAudio}  •  {_settings.VideoFrameRate} fps"
-            : Strings.VideoSummary(string.Join(" + ", audio), _settings.VideoFrameRate);
+            : Strings.VideoSummary(AudioDevices.Describe(audio), _settings.VideoFrameRate);
     }
 
     /// <summary>Capture button, shortcut: a screenshot in image mode, start/stop in video mode.</summary>
@@ -137,8 +135,7 @@ internal sealed partial class MainForm
                 area,
                 _settings.VideoFrameRate,
                 _settings.VideoIncludeCursor,
-                _settings.RecordSystemAudio,
-                _settings.RecordMicrophone,
+                _settings.AudioSources.ToList(),
                 _recordingTempPath);
 
             ScreenRecorder recorder = await ScreenRecorder.StartAsync(recordingOptions);

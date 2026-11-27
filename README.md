@@ -65,7 +65,9 @@ With **Video** selected under **Output**, **● Start Recording** or the shortcu
 
 - Saved areas apply to videos too; without one you pick the area before recording starts. In window mode the recording follows the window when it moves.
 - A red frame marks the recorded area; the frame does not appear in the video.
-- **⚙ > Video** sets **system audio** (what the computer plays), **microphone** (both together are mixed), the mouse pointer and the frame rate (15/24/30/60 fps). Defaults: system audio on, microphone off, 30 fps.
+- **⚙ > Video > Audio sources…** chooses the sound of videos: any number of **output devices** (everything the computer plays on that device: music, videos, apps) and **input devices** (microphones, line in…), which are mixed together, or **no audio** for a silent video. "Default output/input device" follows the Windows default when it changes. Devices that are unplugged stay in the list as "(not connected)".
+- **Applications** (Windows 11 / Windows 10 build 20348+): instead of a whole device, only what one program plays can be recorded, e.g. only the video player without notifications or music from other apps. The list shows programs that have played audio; a program is remembered by name, so it can be closed and reopened. Several programs and devices can be combined.
+- **⚙ > Video** also sets the mouse pointer and the frame rate (15/24/30/60 fps). Defaults: default output device only, 30 fps.
 - Areas larger than 4096x2304 pixels (e.g. several 4K monitors) are scaled down proportionally because of the H.264 limit.
 - If an audio device is missing or the Windows Audio service does not respond, recording continues without that sound and a warning is shown.
 
@@ -173,7 +175,9 @@ Ist unter **Ausgabe** **Video** gewählt, startet **● Aufnahme starten** oder 
 
 - Gespeicherte Bereiche gelten auch für Videos; ohne gespeicherten Bereich wird vor der Aufnahme ausgewählt. Im Fenstermodus folgt die Aufnahme dem Fenster, wenn es verschoben wird.
 - Ein roter Rahmen markiert den aufgenommenen Bereich; der Rahmen erscheint nicht im Video.
-- Unter **⚙ > Video** werden **Systemton** (was der Computer abspielt), **Mikrofon** (beide zusammen werden gemischt), Mauszeiger und Bildrate (15/24/30/60 fps) eingestellt. Standard: Systemton an, Mikrofon aus, 30 fps.
+- **⚙ > Video > Tonquellen…** wählt den Ton der Videos: beliebig viele **Ausgabegeräte** (alles, was der Computer auf diesem Gerät abspielt: Musik, Videos, Programme) und **Eingabegeräte** (Mikrofone, Line-In…), die zusammengemischt werden, oder **kein Ton** für ein stummes Video. „Standard-Ausgabe-/Eingabegerät“ folgt dem Windows-Standard, wenn er sich ändert. Getrennte Geräte bleiben als „(nicht verbunden)“ in der Liste.
+- **Anwendungen** (Windows 11 / Windows 10 Build 20348+): Statt eines ganzen Geräts kann nur der Ton eines Programms aufgenommen werden, z. B. nur der Videoplayer ohne Benachrichtigungen oder Musik anderer Programme. Die Liste zeigt Programme, die Ton abgespielt haben; ein Programm wird über seinen Namen gespeichert und kann geschlossen und wieder geöffnet werden. Mehrere Programme und Geräte lassen sich kombinieren.
+- Unter **⚙ > Video** werden außerdem Mauszeiger und Bildrate (15/24/30/60 fps) eingestellt. Standard: nur das Standard-Ausgabegerät, 30 fps.
 - Bereiche größer als 4096x2304 Pixel (z. B. mehrere 4K-Monitore) werden wegen der H.264-Grenze proportional verkleinert.
 - Wird kein Audiogerät gefunden oder reagiert der Windows-Audiodienst nicht, läuft die Aufnahme ohne Ton weiter und ein Hinweis erscheint.
 
@@ -281,7 +285,9 @@ Yeni bir metin eklemek için `src/ScreenCapture/Localization/Strings.cs` dosyas�
 
 - Kayıtlı alanlar videoda da geçerlidir; alan yoksa kayıttan önce seçim yapılır. Pencere modunda kayıt, pencere taşınırsa onu izler.
 - Kaydedilen alanın çevresinde kırmızı bir çerçeve görünür; çerçeve videoya girmez.
-- **⚙ > Video** bölümünden **sistem sesi** (bilgisayarda çalan ses), **mikrofon** (ikisi birlikte seçilirse karıştırılır), fare imleci ve kare hızı (15/24/30/60 fps) ayarlanır. Varsayılan: sistem sesi açık, mikrofon kapalı, 30 fps.
+- **⚙ > Video > Ses kaynakları…** ile videonun sesi seçilir: istenen sayıda **çıkış aygıtı** (bilgisayarın o aygıttan çaldığı her şey: müzik, video, uygulamalar) ve **giriş aygıtı** (mikrofon, hat girişi…) seçilebilir, seçilenler karıştırılır; **ses kaydetme** seçilirse sessiz video oluşturulur. "Varsayılan çıkış/giriş aygıtı" Windows'taki varsayılan aygıt değişince onu izler. Çıkarılan aygıtlar listede "(bağlı değil)" olarak kalır.
+- **Uygulamalar** (Windows 11 / Windows 10 20348+): Bir aygıtın tamamı yerine yalnızca tek bir programın çaldığı ses kaydedilebilir; örneğin yalnızca video oynatıcının sesi, bildirimler veya başka uygulamalardaki müzik olmadan. Listede ses çalmış programlar görünür; program adıyla hatırlanır, kapatılıp yeniden açılabilir. Birden fazla program ve aygıt birlikte seçilebilir.
+- **⚙ > Video** bölümünden ayrıca fare imleci ve kare hızı (15/24/30/60 fps) ayarlanır. Varsayılan: yalnızca varsayılan çıkış aygıtı, 30 fps.
 - 4096x2304 pikselden büyük alanlar (ör. birden çok 4K monitör) H.264 sınırı nedeniyle orantılı küçültülür.
 - Ses cihazı bulunamazsa veya Windows Ses hizmeti yanıt vermezse kayıt sessiz devam eder ve uyarı gösterilir.
 

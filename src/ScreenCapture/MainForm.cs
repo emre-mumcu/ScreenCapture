@@ -561,6 +561,13 @@ internal sealed partial class MainForm : Form
                     case "About": ShowAboutDialog(); break;
                     case "Settings": ShowSettingsDialog(); break;
                     case "Hotkey": ShowHotkeyDialog(); break;
+                    case "Audio":
+                        using (var audio = new AudioSourcesDialog(_settings.AudioSources, Recording.AudioDevices.TryGetDevices()))
+                        {
+                            audio.ShowDialog(this);
+                        }
+
+                        break;
                 }
             };
             dialogTimer.Start();

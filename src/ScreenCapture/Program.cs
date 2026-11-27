@@ -61,7 +61,10 @@ internal static class Program
     }
 
 #if DEBUG
-    /// <summary>spec = "seconds;systemAudio(0/1);microphone(0/1);x,y,w,h;outputPath"</summary>
+    /// <summary>
+    /// spec = "seconds;systemAudio(0/1);microphone(0/1);x,y,w,h;outputPath[;P:deviceId|I:deviceId|A:processName…]".
+    /// The trace file also lists the audio devices found.
+    /// </summary>
     private static void RunRecordingSelfTest(string spec)
     {
         string[] parts = spec.Split(';');
@@ -71,9 +74,26 @@ internal static class Program
         Recording.RecorderTrace.FilePath = Path.ChangeExtension(output, ".trace.txt");
         try
         {
+            List<Recording.AudioDeviceInfo>? devices = Recording.AudioDevices.TryGetDevices();
+            Recording.RecorderTrace.Write(devices is null
+                ? "Devices: timeout"
+                : "Devices:\n" + string.Join("\n", devices.Select(d => $"  {d.Kind} {(d.IsDefault ? "*" : " ")} {d.Name} | {d.Id}")));
+
+            var sources = new List<Recording.AudioSourceSetting>();
+            if (parts[1] == "1") sources.Add(new(Recording.AudioSourceKind.Playback, null, null));
+            if (parts[2] == "1") sources.Add(new(Recording.AudioSourceKind.Input, null, null));
+            if (parts.Length > 5)
+            {
+                foreach (string item in parts[5].Split('|', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var kind = item[0] switch { 'P' => Recording.AudioSourceKind.Playback, 'A' => Recording.AudioSourceKind.Application, _ => Recording.AudioSourceKind.Input };
+                    sources.Add(new(kind, item[2..], item[2..]));
+                }
+            }
+
             var options = new Recording.RecordingOptions(
                 new Recording.RecordingArea(new Rectangle(r[0], r[1], r[2], r[3])),
-                30, true, parts[1] == "1", parts[2] == "1", output);
+                30, true, sources, output);
             Recording.RecorderTrace.Write("Starting");
             Recording.ScreenRecorder recorder = Recording.ScreenRecorder.StartAsync(options).GetAwaiter().GetResult();
             Recording.RecorderTrace.Write("Started; warnings: " + string.Join(" | ", recorder.Warnings));
