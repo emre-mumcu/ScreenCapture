@@ -50,6 +50,9 @@ internal sealed class AppSettings
 
     public bool IncludeCursor { get; set; }
 
+    /// <summary>Keep a red frame around the saved area / window / monitor of the current mode while the app runs.</summary>
+    public bool ShowAreaFrame { get; set; } = true;
+
     public bool PlaySound { get; set; } = true;
 
     public bool ShowNotification { get; set; }

@@ -646,6 +646,7 @@ internal sealed partial class MainForm : Form
         {
             Strings.LanguageChanged -= OnLanguageChanged;
             UiTheme.ThemeChanged -= OnThemeChanged;
+            DisposeAreaFrames();
             _trayIcon.Dispose();
             _hotkeys.Dispose();
             _components.Dispose();
@@ -694,6 +695,7 @@ internal sealed partial class MainForm : Form
             : mode == CaptureMode.FullScreen ? Strings.TargetDefault : Strings.TargetEachTime;
         _toolTip.SetToolTip(_targetHintLabel, hasTarget ? Strings.TargetSavedTip : Strings.TargetNoneTip);
         _clearTargetButton.Enabled = hasTarget;
+        RefreshAreaFrame();
     }
 
     private async Task DefineTargetAsync()
@@ -812,6 +814,7 @@ internal sealed partial class MainForm : Form
         SettingsStore.Save(_settings);
         UpdateTargetDisplay();
         SetStatus(Strings.StatusAreaSaved, isSuccess: true);
+        FlashSavedTarget();
     }
 
     // ---- Capture ------------------------------------------------------------
@@ -864,6 +867,7 @@ internal sealed partial class MainForm : Form
 
             // Encoding and disk I/O run in the background; the saver disposes the bitmap.
             saveTask = _saver.SaveAsync(bitmap, timestamp);
+            FlashAreaFrame(_captureController.LastCaptureArea); // after the grab, so never in the image
         }
         catch (CaptureTargetException ex)
         {

@@ -10,6 +10,29 @@ namespace ScreenCapture.Capture;
 /// </summary>
 internal sealed class CaptureController
 {
+    /// <summary>Screen area (physical pixels) of the most recent successful image capture.</summary>
+    public Rectangle LastCaptureArea { get; private set; }
+
+    /// <summary>Screen area a saved target currently refers to, or null if it cannot be resolved right now.</summary>
+    public static Rectangle? DescribeTargetArea(CaptureMode mode, MonitorTarget? monitor, WindowTarget? window, RegionTarget? region)
+    {
+        try
+        {
+            return mode switch
+            {
+                CaptureMode.FullScreen => ResolveMonitorBounds(monitor),
+                CaptureMode.Window when window is not null =>
+                    WindowFinder.ResolveTarget(window, WindowFinder.GetCapturableWindows()).Bounds,
+                CaptureMode.Region when region is not null => region.ToRectangle(),
+                _ => null,
+            };
+        }
+        catch (CaptureTargetException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>Returns the captured bitmap (caller owns it) or null if the user cancelled.</summary>
     /// <exception cref="CaptureTargetException">A saved target is currently not available.</exception>
     public async Task<Bitmap?> CaptureAsync(CaptureMode mode, CaptureOptions options)
@@ -100,8 +123,11 @@ internal sealed class CaptureController
 
     // ---- Full screen ----------------------------------------------------------
 
-    private static Bitmap CaptureFullScreen(CaptureOptions options) =>
-        ScreenCaptureService.CaptureRectangle(ResolveMonitorBounds(options.Monitor), options.IncludeCursor);
+    private Bitmap CaptureFullScreen(CaptureOptions options)
+    {
+        LastCaptureArea = ResolveMonitorBounds(options.Monitor);
+        return ScreenCaptureService.CaptureRectangle(LastCaptureArea, options.IncludeCursor);
+    }
 
     /// <summary>Monitor under the cursor, all monitors, or the saved monitor.</summary>
     private static Rectangle ResolveMonitorBounds(MonitorTarget? target)
@@ -123,7 +149,7 @@ internal sealed class CaptureController
 
     // ---- Region ---------------------------------------------------------------
 
-    private static async Task<Bitmap?> CaptureRegionAsync(CaptureOptions options)
+    private async Task<Bitmap?> CaptureRegionAsync(CaptureOptions options)
     {
         Rectangle virtualScreen = ScreenCaptureService.VirtualScreen;
 
@@ -135,13 +161,20 @@ internal sealed class CaptureController
                 throw new CaptureTargetException(Strings.RegionOffScreen);
             }
 
+            LastCaptureArea = visible;
             return ScreenCaptureService.CaptureRectangle(visible, options.IncludeCursor);
         }
 
         // Freeze the screen first, so menus/tooltips/videos stay exactly as they were.
         using Bitmap frozen = ScreenCaptureService.CaptureRectangle(virtualScreen, options.IncludeCursor);
         Rectangle? selection = await SelectRegionAsync(frozen, virtualScreen);
-        return selection is { } rect ? ScreenCaptureService.Crop(frozen, rect) : null;
+        if (selection is not { } rect)
+        {
+            return null;
+        }
+
+        LastCaptureArea = rect with { X = rect.X + virtualScreen.X, Y = rect.Y + virtualScreen.Y };
+        return ScreenCaptureService.Crop(frozen, rect);
     }
 
     private static async Task<Rectangle?> SelectRegionAsync(Bitmap frozen, Rectangle virtualScreen)
@@ -159,7 +192,7 @@ internal sealed class CaptureController
 
     // ---- Window ---------------------------------------------------------------
 
-    private static async Task<Bitmap?> CaptureWindowAsync(CaptureOptions options)
+    private async Task<Bitmap?> CaptureWindowAsync(CaptureOptions options)
     {
         List<WindowInfo> windows = WindowFinder.GetCapturableWindows();
 
@@ -201,9 +234,10 @@ internal sealed class CaptureController
     /// Unobstructed windows are copied from the screen (pixel exact, includes everything the user sees).
     /// Covered or partially off-screen windows are rendered with PrintWindow instead.
     /// </summary>
-    private static Bitmap CaptureWindow(WindowInfo target, IReadOnlyList<WindowInfo> windows, Bitmap? frozen, Point frozenOrigin, bool includeCursor)
+    private Bitmap CaptureWindow(WindowInfo target, IReadOnlyList<WindowInfo> windows, Bitmap? frozen, Point frozenOrigin, bool includeCursor)
     {
         Rectangle virtualScreen = ScreenCaptureService.VirtualScreen;
+        LastCaptureArea = Rectangle.Intersect(target.Bounds, virtualScreen);
         bool occluded = WindowFinder.IsOccluded(windows, target);
         bool partiallyOffScreen = !virtualScreen.Contains(target.Bounds);
 

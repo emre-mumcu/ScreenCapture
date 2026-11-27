@@ -47,6 +47,7 @@ Each mode keeps its own saved area. Once an area is saved, the **Capture** butto
 | **Region** | The screen freezes and you drag a rectangle | Drag a rectangle; later captures always take the same rectangle |
 
 - Press **Esc** or **right-click** to leave a selection screen.
+- While the app is running, a **red frame** marks the area the selected mode will capture: the saved region, the saved window (it follows the window and disappears while the window is minimized) or the monitor. The frame never appears in images or videos and can be turned off under **⚙ > Capture**. Areas picked anew each time get the frame for a moment after the capture.
 - A **saved window** is found again by process name and window class, even after the application was closed and reopened. It is captured even when other windows cover it. If it is closed or minimized, a warning appears in the status line (as a notification when the main window is hidden).
 - The same warning appears if a **saved monitor** is not connected or a **saved region** lies outside the screens.
 
@@ -154,6 +155,7 @@ Jeder Modus speichert seinen eigenen Bereich. Ist ein Bereich gespeichert, nehme
 | **Bereich** | Der Bildschirm wird eingefroren, ein Rechteck wird aufgezogen | Ein Rechteck aufziehen; spätere Aufnahmen nehmen immer dasselbe Rechteck |
 
 - Mit **Esc** oder **Rechtsklick** wird ein Auswahlbildschirm verlassen.
+- Solange das Programm läuft, markiert ein **roter Rahmen** den Bereich, den der gewählte Modus aufnimmt: den gespeicherten Bereich, das gespeicherte Fenster (der Rahmen folgt dem Fenster und verschwindet, solange es minimiert ist) oder den Monitor. Der Rahmen erscheint nie in Bildern oder Videos und lässt sich unter **⚙ > Aufnahme** abschalten. Jedes Mal neu gewählte Bereiche werden nach der Aufnahme kurz umrahmt.
 - Ein **gespeichertes Fenster** wird über Prozessname und Fensterklasse wiedergefunden, auch nachdem das Programm geschlossen und neu geöffnet wurde. Es wird auch dann aufgenommen, wenn andere Fenster es verdecken. Ist es geschlossen oder minimiert, erscheint ein Hinweis in der Statuszeile (bei ausgeblendetem Hauptfenster als Benachrichtigung).
 - Derselbe Hinweis erscheint, wenn ein **gespeicherter Monitor** nicht verbunden ist oder ein **gespeicherter Bereich** außerhalb der Bildschirme liegt.
 
@@ -261,6 +263,7 @@ Her mod kendi kayıtlı alanını ayrı tutar. Alan kaydedildiğinde **Yakala** 
 | **Serbest Alan** | Ekran dondurulur, fare ile bir alan sürüklenir | Bir alan sürüklenir; sonraki yakalamalarda hep aynı dikdörtgen yakalanır |
 
 - Seçim ekranlarından **Esc** veya **sağ tık** ile çıkılır.
+- Uygulama açık olduğu sürece seçili modun yakalayacağı alan **kırmızı bir çerçeveyle** gösterilir: kayıtlı alan, kayıtlı pencere (çerçeve pencereyi izler, pencere küçültülmüşken gizlenir) ya da monitör. Çerçeve resimlere ve videolara hiçbir zaman girmez; **⚙ > Yakalama** bölümünden kapatılabilir. Her seferinde yeniden seçilen alanlar yakalamadan sonra kısa bir süre çerçeveyle gösterilir.
 - **Kayıtlı pencere** uygulama kapatılıp yeniden açılsa bile işlem adı ve pencere sınıfına göre yeniden bulunur. Pencere başka pencerelerin altında kalsa da yakalanır. Pencere kapatılmış ya da simge durumuna küçültülmüşse durum satırında (ana pencere gizliyse tepsi bildiriminde) bir uyarı gösterilir.
 - **Kayıtlı monitör** bağlı değilse veya **kayıtlı alan** ekranların dışında kalıyorsa da aynı şekilde uyarı gösterilir.
 

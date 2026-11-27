@@ -18,6 +18,7 @@ internal sealed class SettingsDialog : ThemedDialog
     private readonly CheckBox _playSound;
     private readonly CheckBox _showNotification;
     private readonly CheckBox _copyToClipboard;
+    private readonly CheckBox _showAreaFrame;
     private readonly CheckBox _swallowMouse;
     private readonly CheckBox _startWithWindows;
     private readonly ComboBox _frameRate;
@@ -58,6 +59,7 @@ internal sealed class SettingsDialog : ThemedDialog
         _activeWindow = AddCheck(layout, Strings.SettingsActiveWindow, _settings.CaptureActiveWindowDirectly);
         _includeCursor = AddCheck(layout, Strings.SettingsIncludeCursor, _settings.IncludeCursor);
         _copyToClipboard = AddCheck(layout, Strings.SettingsCopyToClipboard, _settings.CopyToClipboard);
+        _showAreaFrame = AddCheck(layout, Strings.SettingsShowAreaFrame, _settings.ShowAreaFrame);
 
         AddHeader(layout, Strings.SettingsVideo);
         _systemAudio = AddCheck(layout, Strings.SettingsSystemAudio, _settings.RecordSystemAudio);
@@ -135,6 +137,7 @@ internal sealed class SettingsDialog : ThemedDialog
         _settings.CaptureActiveWindowDirectly = _activeWindow.Checked;
         _settings.IncludeCursor = _includeCursor.Checked;
         _settings.CopyToClipboard = _copyToClipboard.Checked;
+        _settings.ShowAreaFrame = _showAreaFrame.Checked;
         _settings.RecordSystemAudio = _systemAudio.Checked;
         _settings.RecordMicrophone = _microphone.Checked;
         _settings.VideoIncludeCursor = _videoCursor.Checked;

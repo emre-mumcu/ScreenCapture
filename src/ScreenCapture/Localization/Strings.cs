@@ -298,7 +298,8 @@ internal static class Strings
     public static string SettingsCapture => T("Yakalama", "Capture", "Aufnahme");
     public static string SettingsActiveWindow => T("Pencere (alan belirlenmemişse): seçim yapmadan etkin pencereyi yakala", "Window (no saved area): capture the active window without picking", "Fenster (ohne gespeicherten Bereich): aktives Fenster ohne Auswahl aufnehmen");
     public static string SettingsIncludeCursor => T("Fare imlecini görüntüye dahil et", "Include the mouse pointer", "Mauszeiger mit aufnehmen");
-    public static string SettingsCopyToClipboard => T("Görüntüyü ayrıca panoya kopyala", "Also copy the image to the clipboard", "Bild zusätzlich in die Zwischenablage kopieren");
+    public static string SettingsShowAreaFrame => T("Belirlenen alanı kırmızı çerçeveyle göster", "Show the set area with a red frame", "Festgelegten Bereich rot umrahmen");
+    public static string SettingsCopyToClipboard =>T("Görüntüyü ayrıca panoya kopyala", "Also copy the image to the clipboard", "Bild zusätzlich in die Zwischenablage kopieren");
     public static string SettingsFeedback => T("Bildirim ve kısayol", "Feedback and shortcut", "Rückmeldung und Tastenkürzel");
     public static string SettingsPlaySound => T("Kayıtta ses çal", "Play a sound when saved", "Beim Speichern Ton abspielen");
     public static string SettingsShowNotification => T("Kayıtta tepsi bildirimi göster", "Show a notification when saved", "Beim Speichern Benachrichtigung anzeigen");

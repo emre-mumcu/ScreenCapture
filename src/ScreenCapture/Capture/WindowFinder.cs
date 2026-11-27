@@ -243,6 +243,10 @@ internal static unsafe class WindowFinder
     private static bool SameProcess(nint hwnd, WindowTarget target) =>
         string.Equals(GetProcessName(hwnd), target.ProcessName, StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>True if the window exists and is currently visible on the desktop (not minimized, hidden or cloaked).</summary>
+    public static bool IsShownOnScreen(nint hwnd) =>
+        hwnd != 0 && IsWindow(hwnd) && IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsCloaked(hwnd);
+
     private static bool IsCloaked(nint hwnd)
     {
         int cloaked = 0;
