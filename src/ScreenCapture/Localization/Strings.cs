@@ -309,6 +309,51 @@ internal static class Strings
     public static string ThemeDark => T("Koyu", "Dark", "Dunkel");
     public static string ThemeSystem => T("Windows ayarını kullan", "Use Windows setting", "Windows-Einstellung verwenden");
 
+    // ---- Video recording -----------------------------------------------------------------
+
+    public static string SectionOutput => T("Çıktı", "Output", "Ausgabe");
+    public static string OutputImage => T("Resim", "Image", "Bild");
+    public static string OutputVideo => T("Video", "Video", "Video");
+    public static string OutputImageTip => T("Ekran görüntüsünü PNG olarak kaydeder", "Saves a screenshot as PNG", "Speichert einen Screenshot als PNG");
+    public static string OutputVideoTip => T("Seçilen alanı sesli olarak MP4 videoya kaydeder", "Records the selected area as MP4 video with sound", "Nimmt den gewählten Bereich als MP4-Video mit Ton auf");
+    public static string StartRecording => T("● Kaydı Başlat", "● Start Recording", "● Aufnahme starten");
+    public static string StopRecording(string elapsed) => T($"■ Durdur   {elapsed}", $"■ Stop   {elapsed}", $"■ Stoppen   {elapsed}");
+    public static string StartRecordingTip => T("Seçili mod ve alanla video kaydını başlat (kısayol da başlatır/durdurur)", "Start recording the selected mode and area (the shortcut starts/stops too)", "Aufnahme des gewählten Modus und Bereichs starten (das Kürzel startet/stoppt ebenfalls)");
+    public static string StopRecordingTip => T("Kaydı durdur ve videoyu kaydet", "Stop and save the video", "Aufnahme beenden und Video speichern");
+    public static string StatusRecordingStarting => T("Kayıt başlatılıyor…", "Starting recording…", "Aufnahme wird gestartet…");
+    public static string StatusRecording => T("● Kaydediliyor – durdurmak için Durdur'a veya kısayola basın", "● Recording – press Stop or the shortcut to finish", "● Aufnahme läuft – zum Beenden „Stoppen“ oder das Kürzel drücken");
+    public static string StatusFinalizing => T("Video kaydediliyor…", "Saving video…", "Video wird gespeichert…");
+    public static string StatusRecordingFailed(string message) => T($"Kayıt başarısız: {message}", $"Recording failed: {message}", $"Aufnahme fehlgeschlagen: {message}");
+    public static string NotifyVideoSavedTitle => T("Video kaydedildi", "Video saved", "Video gespeichert");
+    public static string NotifyRecordingStartedTitle => T("Video kaydı başladı", "Recording started", "Aufnahme gestartet");
+    public static string VideoSystemAudio => T("Sistem sesi", "System audio", "Systemton");
+    public static string VideoMicrophone => T("Mikrofon", "Microphone", "Mikrofon");
+    public static string VideoNoAudio => T("Ses yok", "No audio", "Kein Ton");
+    public static string VideoSummary(string audio, int fps) => T($"Ses: {audio}  •  {fps} fps", $"Audio: {audio}  •  {fps} fps", $"Ton: {audio}  •  {fps} fps");
+    public static string VideoAudioDeviceMissing(string name) => T(
+        $"{name} için cihaz bulunamadı; video bu ses olmadan kaydediliyor.",
+        $"No device found for {name}; recording without it.",
+        $"Kein Gerät für {name} gefunden; Aufnahme ohne diesen Ton.");
+    public static string VideoAudioDeviceFailed(string name) => T(
+        $"{name} açılamadı; video bu ses olmadan kaydediliyor.",
+        $"{name} could not be opened; recording without it.",
+        $"{name} konnte nicht geöffnet werden; Aufnahme ohne diesen Ton.");
+    public static string VideoAudioDeviceTimeout(string name) => T(
+        $"{name} yanıt vermiyor (Windows Ses hizmeti); video bu ses olmadan kaydediliyor.",
+        $"{name} is not responding (Windows Audio service); recording without it.",
+        $"{name} reagiert nicht (Windows-Audiodienst); Aufnahme ohne diesen Ton.");
+    public static string VideoAreaTooSmall(int min) => T(
+        $"Video için alan en az {min}x{min} piksel olmalı.",
+        $"The video area must be at least {min}x{min} pixels.",
+        $"Der Videobereich muss mindestens {min}x{min} Pixel groß sein.");
+    public static string TrayStartRecording => T("Video Kaydını Başlat", "Start Video Recording", "Videoaufnahme starten");
+    public static string TrayStopRecording => T("Video Kaydını Durdur", "Stop Video Recording", "Videoaufnahme beenden");
+    public static string SettingsVideo => T("Video", "Video", "Video");
+    public static string SettingsFrameRate => T("Kare hızı:", "Frame rate:", "Bildrate:");
+    public static string SettingsSystemAudio => T("Sistem sesini kaydet (bilgisayarda çalan ses)", "Record system audio (what the computer plays)", "Systemton aufnehmen (was der Computer abspielt)");
+    public static string SettingsMicrophone => T("Mikrofonu kaydet", "Record the microphone", "Mikrofon aufnehmen");
+    public static string SettingsVideoCursor => T("Fare imlecini videoda göster", "Show the mouse pointer in videos", "Mauszeiger im Video anzeigen");
+
     // ---- About ------------------------------------------------------------------------
 
     public static string AboutButton => T("Hakkında…", "About…", "Über…");

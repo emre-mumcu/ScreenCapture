@@ -7,6 +7,12 @@ public enum CaptureMode
     Region = 2,
 }
 
+public enum CaptureOutput
+{
+    Image = 0,
+    Video = 1,
+}
+
 internal static class CaptureModeExtensions
 {
     public static string DisplayName(this CaptureMode mode) => mode switch

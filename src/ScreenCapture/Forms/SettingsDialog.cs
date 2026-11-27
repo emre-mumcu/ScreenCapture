@@ -20,6 +20,12 @@ internal sealed class SettingsDialog : ThemedDialog
     private readonly CheckBox _copyToClipboard;
     private readonly CheckBox _swallowMouse;
     private readonly CheckBox _startWithWindows;
+    private readonly ComboBox _frameRate;
+    private readonly CheckBox _systemAudio;
+    private readonly CheckBox _microphone;
+    private readonly CheckBox _videoCursor;
+
+    private static readonly int[] FrameRates = [15, 24, 30, 60];
 
     public SettingsDialog(AppSettings settings, string capturesDirectory)
     {
@@ -52,6 +58,17 @@ internal sealed class SettingsDialog : ThemedDialog
         _activeWindow = AddCheck(layout, Strings.SettingsActiveWindow, _settings.CaptureActiveWindowDirectly);
         _includeCursor = AddCheck(layout, Strings.SettingsIncludeCursor, _settings.IncludeCursor);
         _copyToClipboard = AddCheck(layout, Strings.SettingsCopyToClipboard, _settings.CopyToClipboard);
+
+        AddHeader(layout, Strings.SettingsVideo);
+        _systemAudio = AddCheck(layout, Strings.SettingsSystemAudio, _settings.RecordSystemAudio);
+        _microphone = AddCheck(layout, Strings.SettingsMicrophone, _settings.RecordMicrophone);
+        _videoCursor = AddCheck(layout, Strings.SettingsVideoCursor, _settings.VideoIncludeCursor);
+        var frameRateRow = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Margin = new Padding(0, 2, 0, 0) };
+        frameRateRow.Controls.Add(new Label { Text = Strings.SettingsFrameRate, AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 6, 0) });
+        _frameRate = AddCombo(frameRateRow, FrameRates.Select(fps => $"{fps} fps"),
+            Math.Max(0, Array.IndexOf(FrameRates, _settings.VideoFrameRate)));
+        _frameRate.Width = 90;
+        layout.Controls.Add(frameRateRow);
 
         AddHeader(layout, Strings.SettingsFeedback);
         _playSound = AddCheck(layout, Strings.SettingsPlaySound, _settings.PlaySound);
@@ -118,6 +135,10 @@ internal sealed class SettingsDialog : ThemedDialog
         _settings.CaptureActiveWindowDirectly = _activeWindow.Checked;
         _settings.IncludeCursor = _includeCursor.Checked;
         _settings.CopyToClipboard = _copyToClipboard.Checked;
+        _settings.RecordSystemAudio = _systemAudio.Checked;
+        _settings.RecordMicrophone = _microphone.Checked;
+        _settings.VideoIncludeCursor = _videoCursor.Checked;
+        _settings.VideoFrameRate = FrameRates[Math.Max(0, _frameRate.SelectedIndex)];
         _settings.PlaySound = _playSound.Checked;
         _settings.ShowNotification = _showNotification.Checked;
         _settings.SwallowMouseHotkey = _swallowMouse.Checked;

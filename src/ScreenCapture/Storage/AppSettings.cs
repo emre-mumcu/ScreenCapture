@@ -15,6 +15,20 @@ internal sealed class AppSettings
 
     public CaptureMode Mode { get; set; } = CaptureMode.Region;
 
+    /// <summary>Screenshot (PNG) or video recording (MP4).</summary>
+    public CaptureOutput Output { get; set; } = CaptureOutput.Image;
+
+    /// <summary>Video frames per second: 15, 24, 30 or 60.</summary>
+    public int VideoFrameRate { get; set; } = 30;
+
+    /// <summary>Record what the computer plays (WASAPI loopback of the default playback device).</summary>
+    public bool RecordSystemAudio { get; set; } = true;
+
+    /// <summary>Record the default microphone (mixed with system audio when both are on).</summary>
+    public bool RecordMicrophone { get; set; }
+
+    public bool VideoIncludeCursor { get; set; } = true;
+
     public HotkeyDefinition Hotkey { get; set; } = HotkeyDefinition.Default;
 
     /// <summary>When minimized, hide from the taskbar and live only in the notification area.</summary>

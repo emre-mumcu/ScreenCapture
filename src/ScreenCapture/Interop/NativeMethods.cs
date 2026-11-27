@@ -287,6 +287,21 @@ internal static unsafe partial class NativeMethods
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool DeleteObject(nint hObject);
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct BITMAP
+    {
+        public int bmType;
+        public int bmWidth;
+        public int bmHeight;
+        public int bmWidthBytes;
+        public ushort bmPlanes;
+        public ushort bmBitsPixel;
+        public nint bmBits;
+    }
+
+    [LibraryImport("gdi32.dll", EntryPoint = "GetObjectW")]
+    public static partial int GetObject(nint hObject, int size, void* buffer);
+
     // ---- Helpers -----------------------------------------------------------
 
     /// <summary>

@@ -41,6 +41,15 @@ internal static class Program
 
         ApplicationConfiguration.Initialize();
 
+#if DEBUG
+        // Diagnostics only: headless recording of a fixed area, with a trace file.
+        if (Environment.GetEnvironmentVariable("SCREENCAPTURE_TEST_RECORD") is { Length: > 0 } testSpec)
+        {
+            RunRecordingSelfTest(testSpec);
+            return;
+        }
+#endif
+
         AppSettings settings = SettingsStore.Load();
         settings.Language ??= Strings.DetectSystemLanguage();
         Strings.Current = settings.Language.Value;
@@ -50,6 +59,37 @@ internal static class Program
         Application.Run(new MainForm(settings, startMinimized));
         GC.KeepAlive(mutex);
     }
+
+#if DEBUG
+    /// <summary>spec = "seconds;systemAudio(0/1);microphone(0/1);x,y,w,h;outputPath"</summary>
+    private static void RunRecordingSelfTest(string spec)
+    {
+        string[] parts = spec.Split(';');
+        int seconds = int.Parse(parts[0], System.Globalization.CultureInfo.InvariantCulture);
+        int[] r = parts[3].Split(',').Select(v => int.Parse(v, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+        string output = parts[4];
+        Recording.RecorderTrace.FilePath = Path.ChangeExtension(output, ".trace.txt");
+        try
+        {
+            var options = new Recording.RecordingOptions(
+                new Recording.RecordingArea(new Rectangle(r[0], r[1], r[2], r[3])),
+                30, true, parts[1] == "1", parts[2] == "1", output);
+            Recording.RecorderTrace.Write("Starting");
+            Recording.ScreenRecorder recorder = Recording.ScreenRecorder.StartAsync(options).GetAwaiter().GetResult();
+            Recording.RecorderTrace.Write("Started; warnings: " + string.Join(" | ", recorder.Warnings));
+            Thread.Sleep(seconds * 1000);
+            Recording.RecorderTrace.Write("Stopping");
+            recorder.StopAsync().GetAwaiter().GetResult();
+            Recording.RecorderTrace.Write("Stopped; elapsed " + recorder.Elapsed);
+            recorder.Dispose();
+            Recording.RecorderTrace.Write("Done");
+        }
+        catch (Exception ex)
+        {
+            Recording.RecorderTrace.Write("FAILED: " + ex);
+        }
+    }
+#endif
 
     private static void ReportUnhandled(Exception exception, string context)
     {

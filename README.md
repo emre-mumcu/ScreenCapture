@@ -6,7 +6,7 @@
 
 ## English
 
-A compact screen capture tool built with .NET 11 Windows Forms. It captures the full screen, a window or a region with a keyboard or mouse shortcut and saves the images as lossless PNG files in the `Captures` folder.
+A compact screenshot and screen recording tool built with .NET 11 Windows Forms. It captures the full screen, a window or a region with a keyboard or mouse shortcut and saves images as lossless PNG and videos with sound as MP4 in the `Captures` folder.
 
 ### Build and run
 
@@ -27,6 +27,7 @@ dotnet publish src/ScreenCapture -c Release -r win-x64 --self-contained false -p
 
 | Element | Description |
 |---------|-------------|
+| **Output** | **Image** (PNG screenshot) or **Video** (MP4 recording with sound) |
 | **Capture mode** | Full Screen, Window or Region |
 | **Capture area** | Shows the saved area of the selected mode. Save it with **Set Area…**, remove it with **Clear** |
 | **Shortcut** | Shows the active shortcut. Change it with **Change…** |
@@ -56,6 +57,16 @@ When minimized, the application goes to the taskbar. With "hide in the notificat
 The UI is available in English, German and Turkish. On first start the Windows display language is used: Turkish or German if Windows uses it, English otherwise. Change the language under **⚙ > Language**. The main window, tray menu, selection screens and messages switch immediately, without a restart. Shortcut names follow the language too (for example `Strg+Umschalt+S` in German).
 
 To add a text, add a property with all three translations to `src/ScreenCapture/Localization/Strings.cs`.
+
+### Video recording
+
+With **Video** selected under **Output**, **● Start Recording** or the shortcut starts recording the selected mode and area as MP4 (H.264 video + AAC audio); the same button (**■ Stop**, with the elapsed time) or the shortcut finishes it. Videos are saved as `yyyyMMdd_HHmmss_fff.mp4` in the `Captures` folder.
+
+- Saved areas apply to videos too; without one you pick the area before recording starts. In window mode the recording follows the window when it moves.
+- A red frame marks the recorded area; the frame does not appear in the video.
+- **⚙ > Video** sets **system audio** (what the computer plays), **microphone** (both together are mixed), the mouse pointer and the frame rate (15/24/30/60 fps). Defaults: system audio on, microphone off, 30 fps.
+- Areas larger than 4096x2304 pixels (e.g. several 4K monitors) are scaled down proportionally because of the H.264 limit.
+- If an audio device is missing or the Windows Audio service does not respond, recording continues without that sound and a warning is shown.
 
 ### Appearance and About
 
@@ -102,7 +113,7 @@ Images are saved as 24-bit RGB. The alpha channel of a screenshot carries no inf
 
 ## Deutsch
 
-Ein kompaktes Screenshot-Werkzeug auf Basis von .NET 11 Windows Forms. Es nimmt per Tastatur- oder Maus-Kürzel den ganzen Bildschirm, ein Fenster oder einen Bereich auf und speichert die Bilder verlustfrei als PNG im Ordner `Captures`.
+Ein kompaktes Werkzeug für Screenshots und Bildschirmaufnahmen auf Basis von .NET 11 Windows Forms. Es nimmt per Tastatur- oder Maus-Kürzel den ganzen Bildschirm, ein Fenster oder einen Bereich auf und speichert Bilder verlustfrei als PNG und Videos mit Ton als MP4 im Ordner `Captures`.
 
 ### Erstellen und ausführen
 
@@ -123,6 +134,7 @@ dotnet publish src/ScreenCapture -c Release -r win-x64 --self-contained false -p
 
 | Element | Beschreibung |
 |---------|--------------|
+| **Ausgabe** | **Bild** (PNG-Screenshot) oder **Video** (MP4-Aufnahme mit Ton) |
 | **Aufnahmemodus** | Vollbild, Fenster oder Bereich |
 | **Aufnahmebereich** | Zeigt den gespeicherten Bereich des gewählten Modus. Speichern mit **Bereich festlegen…**, entfernen mit **Löschen** |
 | **Tastenkürzel** | Zeigt das aktive Kürzel. Ändern mit **Ändern…** |
@@ -152,6 +164,16 @@ Beim Minimieren wandert das Programm in die Taskleiste. Mit „in den Infobereic
 Die Oberfläche gibt es auf Deutsch, Englisch und Türkisch. Beim ersten Start wird die Windows-Anzeigesprache verwendet: Deutsch oder Türkisch, wenn Windows sie nutzt, sonst Englisch. Die Sprache wird unter **⚙ > Sprache / Language** geändert. Hauptfenster, Infobereich-Menü, Auswahlbildschirme und Meldungen wechseln sofort, ohne Neustart. Auch die Namen der Tastenkürzel passen sich an (z. B. `Strg+Umschalt+S`).
 
 Neue Texte werden in `src/ScreenCapture/Localization/Strings.cs` als Eigenschaft mit allen drei Übersetzungen ergänzt.
+
+### Videoaufnahme
+
+Ist unter **Ausgabe** **Video** gewählt, startet **● Aufnahme starten** oder das Kürzel die Aufnahme des gewählten Modus und Bereichs als MP4 (H.264-Video + AAC-Ton); dieselbe Schaltfläche (**■ Stoppen**, mit Laufzeit) oder das Kürzel beendet sie. Videos werden als `yyyyMMdd_HHmmss_fff.mp4` im Ordner `Captures` gespeichert.
+
+- Gespeicherte Bereiche gelten auch für Videos; ohne gespeicherten Bereich wird vor der Aufnahme ausgewählt. Im Fenstermodus folgt die Aufnahme dem Fenster, wenn es verschoben wird.
+- Ein roter Rahmen markiert den aufgenommenen Bereich; der Rahmen erscheint nicht im Video.
+- Unter **⚙ > Video** werden **Systemton** (was der Computer abspielt), **Mikrofon** (beide zusammen werden gemischt), Mauszeiger und Bildrate (15/24/30/60 fps) eingestellt. Standard: Systemton an, Mikrofon aus, 30 fps.
+- Bereiche größer als 4096x2304 Pixel (z. B. mehrere 4K-Monitore) werden wegen der H.264-Grenze proportional verkleinert.
+- Wird kein Audiogerät gefunden oder reagiert der Windows-Audiodienst nicht, läuft die Aufnahme ohne Ton weiter und ein Hinweis erscheint.
 
 ### Darstellung und Info
 
@@ -198,7 +220,7 @@ Bilder werden als 24-Bit-RGB gespeichert. Der Alphakanal eines Screenshots enth�
 
 ## Türkçe
 
-.NET 11 Windows Forms ile yazılmış, küçük arayüzlü bir ekran görüntüsü aracı. Bir klavye veya fare kısayolu ile tam ekran, pencere ya da serbest alan yakalar ve görüntüleri `Captures` klasörüne kayıpsız PNG olarak kaydeder.
+.NET 11 Windows Forms ile yazılmış, küçük arayüzlü bir ekran görüntüsü ve ekran kaydı aracı. Bir klavye veya fare kısayolu ile tam ekran, pencere ya da serbest alanı yakalar; görüntüleri kayıpsız PNG, videoları sesli MP4 olarak `Captures` klasörüne kaydeder.
 
 ### Derleme ve çalıştırma
 
@@ -219,6 +241,7 @@ dotnet publish src/ScreenCapture -c Release -r win-x64 --self-contained false -p
 
 | Öğe | Açıklama |
 |-----|----------|
+| **Çıktı** | **Resim** (PNG ekran görüntüsü) veya **Video** (sesli MP4 kaydı) |
 | **Yakalama modu** | Tam Ekran, Pencere veya Serbest Alan |
 | **Yakalama alanı** | Seçili modun kayıtlı alanını gösterir. **Alan Belirle…** ile kaydedilir, **Temizle** ile silinir |
 | **Kısayol** | Etkin kısayolu gösterir. **Değiştir…** ile değiştirilir |
@@ -248,6 +271,16 @@ Uygulama küçültüldüğünde görev çubuğuna iner. Ayarlarda "sistem tepsis
 Arayüz Türkçe, İngilizce ve Almanca kullanılabilir. İlk açılışta Windows görüntüleme dili Türkçe ise Türkçe, Almanca ise Almanca, diğer durumlarda İngilizce seçilir. Dil **⚙ > Dil / Language** bölümünden değiştirilir; uygulamayı yeniden başlatmaya gerek kalmadan ana pencere, tepsi menüsü, seçim ekranları ve mesajlar hemen yeni dile geçer. Kısayol adları da dile uyar (örneğin Almancada `Strg+Umschalt+S`).
 
 Yeni bir metin eklemek için `src/ScreenCapture/Localization/Strings.cs` dosyasına üç dildeki karşılığıyla bir özellik eklenir.
+
+### Video kaydı
+
+**Çıktı** bölümünde **Video** seçildiğinde **● Kaydı Başlat** düğmesi ve kısayol, seçili mod ve alanı MP4 (H.264 video + AAC ses) olarak kaydetmeye başlar; aynı düğme (**■ Durdur**, geçen süreyle) veya kısayol kaydı bitirir. Video da `Captures` klasörüne `yyyyMMdd_HHmmss_fff.mp4` adıyla kaydedilir.
+
+- Kayıtlı alanlar videoda da geçerlidir; alan yoksa kayıttan önce seçim yapılır. Pencere modunda kayıt, pencere taşınırsa onu izler.
+- Kaydedilen alanın çevresinde kırmızı bir çerçeve görünür; çerçeve videoya girmez.
+- **⚙ > Video** bölümünden **sistem sesi** (bilgisayarda çalan ses), **mikrofon** (ikisi birlikte seçilirse karıştırılır), fare imleci ve kare hızı (15/24/30/60 fps) ayarlanır. Varsayılan: sistem sesi açık, mikrofon kapalı, 30 fps.
+- 4096x2304 pikselden büyük alanlar (ör. birden çok 4K monitör) H.264 sınırı nedeniyle orantılı küçültülür.
+- Ses cihazı bulunamazsa veya Windows Ses hizmeti yanıt vermezse kayıt sessiz devam eder ve uyarı gösterilir.
 
 ### Görünüm ve Hakkında
 

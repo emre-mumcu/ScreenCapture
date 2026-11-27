@@ -15,7 +15,7 @@ namespace ScreenCapture;
 /// Main window plus notification-area icon. Coordinates hotkeys, capture targets, captures and saving.
 /// The content is built in code and rebuilt when the UI language changes.
 /// </summary>
-internal sealed class MainForm : Form
+internal sealed partial class MainForm : Form
 {
     /// <summary>Delay for captures started from a menu, so the closing menu is not in the image.</summary>
     private const int MenuCaptureDelayMs = 250;
@@ -31,11 +31,13 @@ internal sealed class MainForm : Form
     private readonly Icon _trayIcon = AppIcon.CreateSmall();
     private readonly uint _showInstanceMessage = NativeMethods.RegisterWindowMessage(Program.ShowInstanceMessageName);
     private readonly Dictionary<CaptureMode, RadioButton> _modeButtons = [];
+    private readonly Dictionary<CaptureOutput, RadioButton> _outputButtons = [];
     private readonly ToolTip _toolTip;
     private readonly NotifyIcon _tray;
     private readonly ContextMenuStrip _monitorMenu;
 
     private AppSettings _settings;
+    private Label _outputHeader = null!;
     private Label _modeHeader = null!;
     private Label _areaHeader = null!;
     private Label _hotkeyHeader = null!;
@@ -84,7 +86,7 @@ internal sealed class MainForm : Form
         BuildTrayMenu();
 
         _hotkeys = new HotkeyManager();
-        _hotkeys.Triggered += (_, _) => _ = RunCaptureAsync(_settings.Mode, delayMs: 0);
+        _hotkeys.Triggered += (_, _) => RunPrimaryAction(delayMs: 0);
 
         ApplyWindowPosition();
         TopMost = _settings.AlwaysOnTop;
@@ -135,10 +137,13 @@ internal sealed class MainForm : Form
         };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, ContentWidth));
 
+        _outputHeader = UiTheme.SectionHeader(string.Empty);
         _modeHeader = UiTheme.SectionHeader(string.Empty);
         _areaHeader = UiTheme.SectionHeader(string.Empty);
         _hotkeyHeader = UiTheme.SectionHeader(string.Empty);
 
+        root.Controls.Add(_outputHeader);
+        root.Controls.Add(CreateOutputSelector());
         root.Controls.Add(_modeHeader);
         root.Controls.Add(CreateModeSelector());
         root.Controls.Add(_areaHeader);
@@ -166,12 +171,20 @@ internal sealed class MainForm : Form
         ApplyTexts();
         SetStatus(Strings.Ready);
         _modeButtons[_settings.Mode].Checked = true;
+        _outputButtons[Enum.IsDefined(_settings.Output) ? _settings.Output : CaptureOutput.Image].Checked = true;
     }
 
     /// <summary>Sets every static text and tooltip in the current language.</summary>
     private void ApplyTexts()
     {
+        _outputHeader.Text = Strings.SectionOutput.ToUpper(Strings.Culture);
         _modeHeader.Text = Strings.SectionMode.ToUpper(Strings.Culture);
+
+        foreach ((CaptureOutput output, RadioButton segment) in _outputButtons)
+        {
+            segment.Text = output == CaptureOutput.Video ? "🎬  " + Strings.OutputVideo : "📷  " + Strings.OutputImage;
+            _toolTip.SetToolTip(segment, output == CaptureOutput.Video ? Strings.OutputVideoTip : Strings.OutputImageTip);
+        }
         _areaHeader.Text = Strings.SectionArea.ToUpper(Strings.Culture);
         _hotkeyHeader.Text = Strings.SectionHotkey.ToUpper(Strings.Culture);
 
@@ -192,8 +205,7 @@ internal sealed class MainForm : Form
         _toolTip.SetToolTip(_clearTargetButton, Strings.ClearAreaTip);
         _changeHotkeyButton.Text = Strings.ChangeHotkey;
         _toolTip.SetToolTip(_changeHotkeyButton, Strings.ChangeHotkeyTip);
-        _captureButton.Text = Strings.CaptureButton;
-        _toolTip.SetToolTip(_captureButton, Strings.CaptureButtonTip);
+        UpdateCaptureButton();
         _folderButton.Text = Strings.FolderButton;
         _toolTip.SetToolTip(_folderButton, Strings.FolderButtonTip);
         _toolTip.SetToolTip(_settingsButton, Strings.SettingsTip);
@@ -357,7 +369,7 @@ internal sealed class MainForm : Form
 
         _captureButton = UiTheme.PrimaryButton(Strings.CaptureButton);
         _captureButton.Dock = DockStyle.Fill;
-        _captureButton.Click += (_, _) => _ = RunCaptureAsync(_settings.Mode, delayMs: 0);
+        _captureButton.Click += (_, _) => RunPrimaryAction(delayMs: 0);
         _toolTip.SetToolTip(_captureButton, Strings.CaptureButtonTip);
 
         _folderButton = UiTheme.SecondaryButton(Strings.FolderButton);
@@ -389,6 +401,10 @@ internal sealed class MainForm : Form
         menu.Items.Add(Strings.TrayCaptureWindow, null, (_, _) => _ = RunCaptureAsync(CaptureMode.Window, MenuCaptureDelayMs));
         menu.Items.Add(Strings.TrayCaptureRegion, null, (_, _) => _ = RunCaptureAsync(CaptureMode.Region, MenuCaptureDelayMs));
         menu.Items.Add(new ToolStripSeparator());
+        var recordItem = new ToolStripMenuItem(Strings.TrayStartRecording, null, (_, _) => _ = ToggleRecordingAsync(MenuCaptureDelayMs));
+        menu.Items.Add(recordItem);
+        menu.Opening += (_, _) => recordItem.Text = IsRecording ? Strings.TrayStopRecording : Strings.TrayStartRecording;
+        menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(Strings.TrayOpenFolder, null, (_, _) => OpenCapturesFolder());
         menu.Items.Add(Strings.TraySettings, null, (_, _) => ShowSettingsDialog());
         menu.Items.Add(Strings.TrayAbout, null, (_, _) => ShowAboutDialog());
@@ -410,7 +426,7 @@ internal sealed class MainForm : Form
         // Only texts change; controls stay, so DPI scaling and state are untouched.
         SuspendLayout();
         ApplyTexts();
-        SetStatus(Strings.Ready);
+        SetStatus(IsRecording ? Strings.StatusRecording : IdleStatusText());
         ResumeLayout(performLayout: true);
         BuildTrayMenu();
     }
@@ -419,6 +435,7 @@ internal sealed class MainForm : Form
     {
         UiTheme.Apply(this);
         UpdateTargetDisplay();
+        UpdateCaptureButton();
         SetStatus(_statusLabel.Text, _statusKind);
         BuildTrayMenu();
     }
@@ -598,6 +615,18 @@ internal sealed class MainForm : Form
         base.OnFormClosing(e);
         if (e.Cancel)
         {
+            return;
+        }
+
+        // A running recording is finished and saved first, then the window closes again.
+        if (IsRecording || _recordingTransition)
+        {
+            e.Cancel = true;
+            if (IsRecording && !_recordingTransition)
+            {
+                _ = StopRecordingAsync(closeAfterwards: true);
+            }
+
             return;
         }
 
@@ -985,7 +1014,14 @@ internal sealed class MainForm : Form
         Strings.Current = _settings.Language ?? Strings.Current;
         UiTheme.Mode = _settings.Theme;
         UpdateTargetDisplay();
-        SetStatus(Strings.StatusSettingsSaved, isSuccess: true);
+        if (_settings.Output == CaptureOutput.Video)
+        {
+            SetStatus(IdleStatusText()); // shows the new audio / frame-rate choice
+        }
+        else
+        {
+            SetStatus(Strings.StatusSettingsSaved, isSuccess: true);
+        }
     }
 
     private void OpenCapturesFolder()

@@ -47,24 +47,78 @@ internal sealed class CaptureController
         return RegionTarget.FromRectangle(rect);
     }
 
+    /// <summary>
+    /// Resolves the screen area to record for a mode, using the saved target or an interactive pick.
+    /// Returns null if the user cancelled. Window recordings follow the window when it moves.
+    /// </summary>
+    /// <exception cref="CaptureTargetException">A saved target is currently not available.</exception>
+    public async Task<Recording.RecordingArea?> ResolveRecordingAreaAsync(CaptureMode mode, CaptureOptions options)
+    {
+        switch (mode)
+        {
+            case CaptureMode.FullScreen:
+                return new Recording.RecordingArea(ResolveMonitorBounds(options.Monitor));
+
+            case CaptureMode.Region:
+                if (options.Region is { } saved)
+                {
+                    Rectangle visible = Rectangle.Intersect(saved.ToRectangle(), ScreenCaptureService.VirtualScreen);
+                    if (visible.Width <= 0 || visible.Height <= 0)
+                    {
+                        throw new CaptureTargetException(Strings.RegionOffScreen);
+                    }
+
+                    return new Recording.RecordingArea(visible);
+                }
+
+                RegionTarget? picked = await PickRegionTargetAsync();
+                return picked is null ? null : new Recording.RecordingArea(picked.ToRectangle());
+
+            case CaptureMode.Window:
+                List<WindowInfo> windows = WindowFinder.GetCapturableWindows();
+                WindowInfo? window;
+                if (options.Window is { } savedWindow)
+                {
+                    window = WindowFinder.ResolveTarget(savedWindow, windows);
+                }
+                else if (options.ActiveWindowDirectly)
+                {
+                    window = WindowFinder.GetActiveWindow(windows);
+                }
+                else
+                {
+                    using Bitmap frozen = ScreenCaptureService.CaptureVirtualScreen(includeCursor: false);
+                    window = await SelectWindowAsync(frozen, windows);
+                }
+
+                return window is null ? null : new Recording.RecordingArea(window.Bounds, window.Handle);
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(mode));
+        }
+    }
+
     // ---- Full screen ----------------------------------------------------------
 
-    private static Bitmap CaptureFullScreen(CaptureOptions options)
+    private static Bitmap CaptureFullScreen(CaptureOptions options) =>
+        ScreenCaptureService.CaptureRectangle(ResolveMonitorBounds(options.Monitor), options.IncludeCursor);
+
+    /// <summary>Monitor under the cursor, all monitors, or the saved monitor.</summary>
+    private static Rectangle ResolveMonitorBounds(MonitorTarget? target)
     {
-        MonitorTarget? target = options.Monitor;
         if (target is null)
         {
-            return ScreenCaptureService.CaptureMonitorAtCursor(options.IncludeCursor);
+            return Screen.FromPoint(Cursor.Position).Bounds;
         }
 
         if (target.AllMonitors)
         {
-            return ScreenCaptureService.CaptureVirtualScreen(options.IncludeCursor);
+            return ScreenCaptureService.VirtualScreen;
         }
 
         Screen screen = Screen.AllScreens.FirstOrDefault(s => s.DeviceName == target.DeviceName)
                         ?? throw new CaptureTargetException(Strings.MonitorMissing(target.DeviceName));
-        return ScreenCaptureService.CaptureRectangle(screen.Bounds, options.IncludeCursor);
+        return screen.Bounds;
     }
 
     // ---- Region ---------------------------------------------------------------

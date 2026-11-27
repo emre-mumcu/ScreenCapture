@@ -69,31 +69,48 @@ internal sealed class CaptureSaver
                 }
             }
 
-            // Atomic publish: never overwrite an existing file, append _1, _2 ... on collision.
-            for (int suffix = 0; ; suffix++)
-            {
-                string fileName = suffix == 0 ? $"{baseName}.png" : $"{baseName}_{suffix}.png";
-                string target = Path.Combine(Directory, fileName);
-                if (File.Exists(target))
-                {
-                    continue;
-                }
-
-                try
-                {
-                    File.Move(tempPath, target, overwrite: false);
-                    return target;
-                }
-                catch (IOException) when (File.Exists(target))
-                {
-                    // Lost a race with another writer; try the next suffix.
-                }
-            }
+            return Publish(tempPath, baseName, ".png");
         }
         catch
         {
             try { File.Delete(tempPath); } catch { /* ignore */ }
             throw;
+        }
+    }
+
+    /// <summary>Path the recorder writes to while recording (renamed by <see cref="PublishVideo"/>).</summary>
+    public string CreateVideoTempPath(DateTime timestamp)
+    {
+        System.IO.Directory.CreateDirectory(Directory);
+        string baseName = timestamp.ToString(FileNameFormat, CultureInfo.InvariantCulture);
+        return Path.Combine(Directory, $"{baseName}.{Guid.NewGuid():N}.recording.mp4");
+    }
+
+    /// <summary>Renames a finished recording to yyyyMMdd_HHmmss_fff.mp4 and returns the final path.</summary>
+    public string PublishVideo(string tempPath, DateTime timestamp) =>
+        Publish(tempPath, timestamp.ToString(FileNameFormat, CultureInfo.InvariantCulture), ".mp4");
+
+    /// <summary>Atomic publish: never overwrites an existing file, appends _1, _2 ... on collision.</summary>
+    private string Publish(string tempPath, string baseName, string extension)
+    {
+        for (int suffix = 0; ; suffix++)
+        {
+            string fileName = suffix == 0 ? $"{baseName}{extension}" : $"{baseName}_{suffix}{extension}";
+            string target = Path.Combine(Directory, fileName);
+            if (File.Exists(target))
+            {
+                continue;
+            }
+
+            try
+            {
+                File.Move(tempPath, target, overwrite: false);
+                return target;
+            }
+            catch (IOException) when (File.Exists(target))
+            {
+                // Lost a race with another writer; try the next suffix.
+            }
         }
     }
 }
